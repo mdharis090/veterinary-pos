@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../patients/presentation/patient_detail_screen.dart';
 import '../widgets/dashboard_sidebar.dart';
 import '../widgets/dashboard_summary_card.dart';
 import '../widgets/dashboard_table_panel.dart';
@@ -55,7 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _selectItem(String item) {
     setState(() => _selectedItem = item);
-    if (item != 'Dashboard') {
+    if (item != 'Dashboard' && item != 'Patients') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$item is coming soon'),
@@ -72,6 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final isWide = constraints.maxWidth >= 760;
 
         return Scaffold(
+          backgroundColor: const Color(0xFFF3F6F7),
           drawer: isWide
               ? null
               : Drawer(
@@ -92,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 if (isWide)
                   SizedBox(
-                    width: constraints.maxWidth >= 1100 ? 205 : 150,
+                    width: constraints.maxWidth >= 1100 ? 205 : 180,
                     child: DashboardSidebar(
                       items: _navItems,
                       icons: _navIcons,
@@ -105,8 +107,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       _DashboardTopBar(isWide: isWide),
                       Expanded(
-                        child: _DashboardContent(
-                        ),
+                        child: _selectedItem == 'Patients'
+                            ? const PatientDetailScreen()
+                            : _selectedItem == 'Dashboard'
+                                ? const _DashboardContent()
+                                : _ComingSoonScreen(item: _selectedItem),
                       ),
                     ],
                   ),
@@ -128,11 +133,11 @@ class _DashboardTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 54,
+      height: 58,
       padding: EdgeInsets.symmetric(horizontal: isWide ? 20 : 12),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE8EDF0))),
+        border: Border(bottom: BorderSide(color: Color(0xFFE7EDF1))),
       ),
       child: Row(
         children: [
@@ -147,50 +152,64 @@ class _DashboardTopBar extends StatelessWidget {
             ),
             const SizedBox(width: 4),
           ],
-          if (isWide)
-            SizedBox(
-              width: 250,
-              height: 34,
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search patients, owners, invoices...',
-                  hintStyle: const TextStyle(fontSize: 11),
-                  prefixIcon: const Icon(Icons.search, size: 17),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: EdgeInsets.zero,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7),
-                    borderSide: const BorderSide(color: Color(0xFFDCE3E8)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7),
-                    borderSide: const BorderSide(color: Color(0xFFDCE3E8)),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: isWide ? 330 : 230),
+                child: SizedBox(
+                  height: 34,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search patients, owners, invoices...',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF9AA9B8),
+                        fontSize: 11,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        size: 17,
+                        color: Color(0xFF8B98A8),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFFAFBFC),
+                      contentPadding: EdgeInsets.zero,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE4E9EE)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE4E9EE)),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            )
-          else
-            const Expanded(
-              child: Text(
-                'Vetnaly',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-              ),
             ),
-          const Spacer(),
+          ),
+          const SizedBox(width: 10),
           IconButton(
             onPressed: () {},
             tooltip: 'Notifications',
-            icon: const Icon(Icons.notifications_none, size: 20),
+            icon: const Icon(
+              Icons.notifications_none,
+              size: 20,
+              color: Color(0xFF586B82),
+            ),
             visualDensity: VisualDensity.compact,
           ),
           const SizedBox(width: 8),
           const CircleAvatar(
-            radius: 12,
+            radius: 13,
             backgroundColor: Color(0xFF128078),
             child: Text(
               'DA',
-              style: TextStyle(color: Colors.white, fontSize: 9),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           if (isWide) ...[
@@ -224,11 +243,10 @@ class _DashboardContent extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 600;
-        final isNarrow = constraints.maxWidth < 600;
-        final horizontalPadding = isCompact ? 14.0 : 20.0;
+        final padding = isCompact ? 14.0 : 20.0;
 
         return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(horizontalPadding, 18, horizontalPadding, 24),
+          padding: EdgeInsets.fromLTRB(padding, 18, padding, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -285,7 +303,7 @@ class _DashboardContent extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              if (isNarrow) ...[
+              if (isCompact) ...[
                 const SalesTrendPanel(),
                 const SizedBox(height: 12),
                 const DashboardTablePanel(
@@ -360,6 +378,22 @@ class _DashboardContent extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _ComingSoonScreen extends StatelessWidget {
+  const _ComingSoonScreen({required this.item});
+
+  final String item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        '$item is coming soon',
+        style: const TextStyle(color: Color(0xFF738198), fontSize: 14),
+      ),
     );
   }
 }
