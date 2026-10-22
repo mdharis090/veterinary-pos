@@ -8,11 +8,11 @@ class SalesTrendPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 135,
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 11),
+      height: 250,
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8ED)),
         boxShadow: const [
           BoxShadow(
@@ -29,11 +29,11 @@ class SalesTrendPanel extends StatelessWidget {
             'Sales trend (7 days)',
             style: TextStyle(
               color: Color(0xFF17283F),
-              fontSize: 10,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -51,8 +51,8 @@ class SalesTrendPanel extends StatelessWidget {
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             color: index == _values.length - 1
-                                ? const Color(0xFF128078)
-                                : const Color(0xFF91F0DD),
+                                ? const Color(0xFF0F766E)
+                                : const Color(0xFF99F6E4),
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(4),
                             ),
@@ -63,6 +63,19 @@ class SalesTrendPanel extends StatelessWidget {
                   ),
               ],
             ),
+          ),
+          const SizedBox(height: 10),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text('Mon', style: TextStyle(color: Color(0xFF64748B))),
+              Text('Tue', style: TextStyle(color: Color(0xFF64748B))),
+              Text('Wed', style: TextStyle(color: Color(0xFF64748B))),
+              Text('Thu', style: TextStyle(color: Color(0xFF64748B))),
+              Text('Fri', style: TextStyle(color: Color(0xFF64748B))),
+              Text('Sat', style: TextStyle(color: Color(0xFF64748B))),
+              Text('Sun', style: TextStyle(color: Color(0xFF64748B))),
+            ],
           ),
         ],
       ),

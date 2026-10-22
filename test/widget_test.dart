@@ -38,4 +38,23 @@ void main() {
     expect(find.text('Patient info'), findsOneWidget);
     expect(find.text('Quick actions'), findsOneWidget);
   });
+
+  testWidgets('POS billing is usable at the mobile breakpoint', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const VeterinaryPosApp());
+    await tester.tap(find.byTooltip('Open navigation'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('POS Billing'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Invoice INV-001'), findsOneWidget);
+    expect(find.text('Customer'), findsOneWidget);
+    expect(find.text('Cart'), findsOneWidget);
+    expect(find.text('Total'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

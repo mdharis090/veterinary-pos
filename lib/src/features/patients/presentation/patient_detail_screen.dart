@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class PatientDetailScreen extends StatelessWidget {
-  const PatientDetailScreen({super.key});
+  const PatientDetailScreen({this.onNavigate, super.key});
+
+  final ValueChanged<String>? onNavigate;
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +24,10 @@ class PatientDetailScreen extends StatelessWidget {
             children: [
               const Text(
                 'Home / Patients / Nyxie',
-                style: TextStyle(fontSize: 11, color: Color(0xFF8A96A7)),
+                style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
               ),
               const SizedBox(height: 12),
-              _PatientHeader(isNarrow: isNarrow),
+              _PatientHeader(isNarrow: isNarrow, onNavigate: onNavigate),
               const SizedBox(height: 20),
               const Row(
                 children: [
@@ -39,14 +41,14 @@ class PatientDetailScreen extends StatelessWidget {
               if (isNarrow) ...[
                 const _PatientInfoPanel(),
                 const SizedBox(height: 12),
-                const _QuickActionsPanel(),
+                _QuickActionsPanel(onNavigate: onNavigate),
               ] else
-                const Row(
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _PatientInfoPanel()),
+                    const Expanded(child: _PatientInfoPanel()),
                     SizedBox(width: 18),
-                    Expanded(child: _QuickActionsPanel()),
+                    Expanded(child: _QuickActionsPanel(onNavigate: onNavigate)),
                   ],
                 ),
               const SizedBox(height: 18),
@@ -60,9 +62,10 @@ class PatientDetailScreen extends StatelessWidget {
 }
 
 class _PatientHeader extends StatelessWidget {
-  const _PatientHeader({required this.isNarrow});
+  const _PatientHeader({required this.isNarrow, this.onNavigate});
 
   final bool isNarrow;
+  final ValueChanged<String>? onNavigate;
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +80,8 @@ class _PatientHeader extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: isNarrow ? 52 : 64,
-            height: isNarrow ? 52 : 64,
+            width: isNarrow ? 64 : 96,
+            height: isNarrow ? 64 : 96,
             decoration: BoxDecoration(
               color: const Color(0xFFCCF8F0),
               borderRadius: BorderRadius.circular(10),
@@ -106,24 +109,21 @@ class _PatientHeader extends StatelessWidget {
                     Text(
                       'Nyxie',
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1D2D3D),
                       ),
                     ),
                     Text(
-                      '(Kungs, Sara)',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF4F5E72),
-                      ),
+                      '(Krugs, Sara)',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF4F5E72)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 5),
                 const Text(
                   'German Shepherd Dog (Canine) · Female · 1y 6m · 78 lbs',
-                  style: TextStyle(fontSize: 10, color: Color(0xFF66768A)),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF66768A)),
                 ),
               ],
             ),
@@ -138,7 +138,7 @@ class _PatientHeader extends StatelessWidget {
             child: const Text(
               'Active',
               style: TextStyle(
-                fontSize: 9,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF0E7B71),
               ),
@@ -166,7 +166,7 @@ class _TabItem extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 14,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               color: selected
                   ? const Color(0xFF0E7B71)
@@ -199,18 +199,37 @@ class _PatientInfoPanel extends StatelessWidget {
 }
 
 class _QuickActionsPanel extends StatelessWidget {
-  const _QuickActionsPanel();
+  const _QuickActionsPanel({this.onNavigate});
+
+  final ValueChanged<String>? onNavigate;
 
   @override
   Widget build(BuildContext context) {
     return _Panel(
       title: 'Quick actions',
-      child: const Column(
+      child: Column(
         children: [
-          _ActionButton(label: 'New consultation', filled: true),
-          _ActionButton(label: 'Add prescription'),
-          _ActionButton(label: 'Create bill'),
-          _ActionButton(label: 'Book appointment'),
+          _ActionButton(
+            label: 'New consultation',
+            filled: true,
+            onPressed: () => onNavigate?.call('Consultations'),
+          ),
+          _ActionButton(
+            label: 'Add prescription',
+            onPressed: () => onNavigate?.call('Prescriptions'),
+          ),
+          _ActionButton(
+            label: 'Create bill',
+            onPressed: () => onNavigate?.call('POS Billing'),
+          ),
+          _ActionButton(
+            label: 'Book appointment',
+            onPressed: () => onNavigate?.call('Consultations'),
+          ),
+          _ActionButton(
+            label: 'All patients',
+            onPressed: () => onNavigate?.call('Patients list'),
+          ),
         ],
       ),
     );
@@ -239,7 +258,7 @@ class _Panel extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: FontWeight.w700,
               color: Color(0xFF1C2E40),
             ),
@@ -267,14 +286,14 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(color: Color(0xFF63778B), fontSize: 11),
+              style: const TextStyle(color: Color(0xFF63778B), fontSize: 14),
             ),
           ),
           Text(
             value,
             style: const TextStyle(
               color: Color(0xFF233447),
-              fontSize: 11,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -285,10 +304,15 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.label, this.filled = false});
+  const _ActionButton({
+    required this.label,
+    this.filled = false,
+    this.onPressed,
+  });
 
   final String label;
   final bool filled;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -296,10 +320,10 @@ class _ActionButton extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: SizedBox(
         width: double.infinity,
-        height: 34,
+        height: 44,
         child: filled
             ? ElevatedButton(
-                onPressed: () {},
+                onPressed: onPressed ?? () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0C7F74),
                   foregroundColor: Colors.white,
@@ -312,13 +336,13 @@ class _ActionButton extends StatelessWidget {
                 child: Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               )
             : OutlinedButton(
-                onPressed: () {},
+                onPressed: onPressed ?? () {},
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFF173149),
                   side: const BorderSide(color: Color(0xFFE3E8EE)),
@@ -327,10 +351,7 @@ class _ActionButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
-                  label,
-                  style: const TextStyle(fontSize: 10),
-                ),
+                child: Text(label, style: const TextStyle(fontSize: 14)),
               ),
       ),
     );
@@ -374,13 +395,13 @@ class _ActivityRow extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF2F4157)),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF2F4157)),
           ),
         ),
         const SizedBox(width: 12),
         Text(
           author,
-          style: const TextStyle(fontSize: 9, color: Color(0xFF6C7E92)),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF6C7E92)),
         ),
       ],
     );

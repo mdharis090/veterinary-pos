@@ -6,6 +6,7 @@ class DashboardSidebar extends StatelessWidget {
     required this.icons,
     required this.selectedItem,
     required this.onSelected,
+    this.onSignOut,
     super.key,
   });
 
@@ -13,6 +14,7 @@ class DashboardSidebar extends StatelessWidget {
   final List<IconData> icons;
   final String selectedItem;
   final ValueChanged<String> onSelected;
+  final VoidCallback? onSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -21,20 +23,32 @@ class DashboardSidebar extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            height: 54,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            height: 72,
+            padding: const EdgeInsets.symmetric(horizontal: 18),
             decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: Color(0xFFE8EDF0))),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                CircleAvatar(
-                  radius: 11,
-                  backgroundColor: Color(0xFF128078),
-                  child: Icon(Icons.pets, color: Colors.white, size: 13),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF0F766E),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'V',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
-                SizedBox(width: 8),
-                Flexible(
+                const SizedBox(width: 10),
+                const Flexible(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +58,7 @@ class DashboardSidebar extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Color(0xFF17283F),
-                          fontSize: 11,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -53,7 +67,7 @@ class DashboardSidebar extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Color(0xFF758399),
-                          fontSize: 8,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -64,44 +78,44 @@ class DashboardSidebar extends StatelessWidget {
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
                 final isSelected = item == selectedItem;
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
+                  padding: const EdgeInsets.only(bottom: 4),
                   child: Material(
                     color: isSelected
-                        ? const Color(0xFFCCF8F0)
+                        ? const Color(0xFFCCFBF1)
                         : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(10),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(10),
                       onTap: () => onSelected(item),
                       child: SizedBox(
-                        height: 27,
+                        height: 42,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Row(
                             children: [
                               Icon(
                                 icons[index],
-                                size: 13,
+                                size: 20,
                                 color: isSelected
-                                    ? const Color(0xFF128078)
+                                    ? const Color(0xFF0F766E)
                                     : const Color(0xFF718096),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   item,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: isSelected
-                                        ? const Color(0xFF087B73)
+                                        ? const Color(0xFF0F766E)
                                         : const Color(0xFF52627A),
-                                    fontSize: 9,
+                                    fontSize: 14,
                                     fontWeight: isSelected
                                         ? FontWeight.w600
                                         : FontWeight.w400,
@@ -118,6 +132,23 @@ class DashboardSidebar extends StatelessWidget {
               },
             ),
           ),
+          if (onSignOut != null)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: TextButton.icon(
+                  onPressed: onSignOut,
+                  icon: const Icon(Icons.logout, size: 18),
+                  label: const Text('Sign out'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF64748B),
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

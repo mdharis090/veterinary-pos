@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'clinic_pages.dart';
 import '../../patients/presentation/patient_detail_screen.dart';
 import '../widgets/dashboard_sidebar.dart';
 import '../widgets/dashboard_summary_card.dart';
@@ -53,17 +54,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   ];
 
   String _selectedItem = 'Dashboard';
+  bool _signedOut = false;
+  bool _drawerOpen = false;
 
   void _selectItem(String item) {
     setState(() => _selectedItem = item);
-    if (item != 'Dashboard' && item != 'Patients') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$item is coming soon'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
+  }
+
+  void _signIn() {
+    setState(() {
+      _signedOut = false;
+      _selectedItem = 'Dashboard';
+    });
   }
 
   @override
@@ -71,9 +73,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 760;
+        final isMobile = constraints.maxWidth < 650;
+
+        if (_signedOut) {
+          return LoginScreen(onSignIn: _signIn);
+        }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF3F6F7),
+          backgroundColor: const Color(0xFFF4F7F6),
           drawer: isWide
               ? null
               : Drawer(
@@ -82,6 +89,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       items: _navItems,
                       icons: _navIcons,
                       selectedItem: _selectedItem,
+                      onSignOut: () {
+                        Navigator.of(context).pop();
+                        setState(() => _signedOut = true);
+                      },
                       onSelected: (item) {
                         Navigator.of(context).pop();
                         _selectItem(item);
@@ -89,29 +100,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
+          onDrawerChanged: (isOpen) => setState(() => _drawerOpen = isOpen),
           body: SafeArea(
             child: Row(
               children: [
                 if (isWide)
                   SizedBox(
-                    width: constraints.maxWidth >= 1100 ? 205 : 180,
+                    width: 232,
                     child: DashboardSidebar(
                       items: _navItems,
                       icons: _navIcons,
                       selectedItem: _selectedItem,
+                      onSignOut: () => setState(() => _signedOut = true),
                       onSelected: _selectItem,
                     ),
                   ),
                 Expanded(
                   child: Column(
                     children: [
-                      _DashboardTopBar(isWide: isWide),
+                      _DashboardTopBar(
+                        isWide: isWide,
+                        isMobile: isMobile,
+                        title: _selectedItem == 'Dashboard'
+                            ? 'Vetnalay'
+                            : _selectedItem,
+                      ),
                       Expanded(
-                        child: _selectedItem == 'Patients'
-                            ? const PatientDetailScreen()
+                        child:
+                            _selectedItem == 'Patients' ||
+                                _selectedItem == 'Patient profile'
+                            ? PatientDetailScreen(
+                                onNavigate: (page) => _selectItem(page),
+                              )
                             : _selectedItem == 'Dashboard'
-                                ? const _DashboardContent()
-                                : _ComingSoonScreen(item: _selectedItem),
+                            ? _DashboardContent(onNavigate: _selectItem)
+                            : ClinicPage(
+                                page: _selectedItem == 'Patients list'
+                                    ? 'Patients'
+                                    : _selectedItem,
+                                onNavigate: _selectItem,
+                              ),
                       ),
                     ],
                   ),
@@ -119,6 +147,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
+          bottomNavigationBar: isMobile && !_drawerOpen
+              ? Builder(
+                  builder: (context) => _MobileNavigation(
+                    selected: _selectedItem,
+                    onSelected: (item) {
+                      if (item == 'More') {
+                        Scaffold.of(context).openDrawer();
+                      } else {
+                        _selectItem(item);
+                      }
+                    },
+                  ),
+                )
+              : null,
         );
       },
     );
@@ -126,105 +168,149 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 class _DashboardTopBar extends StatelessWidget {
-  const _DashboardTopBar({required this.isWide});
+  const _DashboardTopBar({
+    required this.isWide,
+    required this.isMobile,
+    required this.title,
+  });
 
   final bool isWide;
+  final bool isMobile;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 58,
+      height: isMobile ? 58 : 64,
       padding: EdgeInsets.symmetric(horizontal: isWide ? 20 : 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE7EDF1))),
+      decoration: BoxDecoration(
+        color: isMobile ? const Color(0xFF134E4A) : Colors.white,
+        border: const Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
       ),
       child: Row(
         children: [
-          if (!isWide) ...[
+          if (isMobile) ...[
             Builder(
               builder: (context) => IconButton(
                 onPressed: () => Scaffold.of(context).openDrawer(),
                 icon: const Icon(Icons.menu_rounded),
                 tooltip: 'Open navigation',
                 visualDensity: VisualDensity.compact,
+                color: Colors.white,
               ),
             ),
             const SizedBox(width: 4),
-          ],
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: isWide ? 330 : 230),
-                child: SizedBox(
-                  height: 34,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search patients, owners, invoices...',
-                      hintStyle: const TextStyle(
-                        color: Color(0xFF9AA9B8),
-                        fontSize: 11,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        size: 17,
-                        color: Color(0xFF8B98A8),
-                      ),
-                      filled: true,
-                      fillColor: const Color(0xFFFAFBFC),
-                      contentPadding: EdgeInsets.zero,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFE4E9EE)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFE4E9EE)),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () {},
+              tooltip: 'Notifications',
+              icon: const Icon(Icons.notifications_none, color: Colors.white),
+            ),
+            const CircleAvatar(
+              radius: 16,
+              backgroundColor: Color(0xFFCCFBF1),
+              child: Text(
+                'DA',
+                style: TextStyle(
+                  color: Color(0xFF134E4A),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ] else ...[
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: SizedBox(
+                    height: 44,
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search patients, owners, invoices...',
+                        hintStyle: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 14,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          size: 20,
+                          color: Color(0xFF64748B),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: EdgeInsets.zero,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF0F766E),
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          IconButton(
-            onPressed: () {},
-            tooltip: 'Notifications',
-            icon: const Icon(
-              Icons.notifications_none,
-              size: 20,
-              color: Color(0xFF586B82),
-            ),
-            visualDensity: VisualDensity.compact,
-          ),
-          const SizedBox(width: 8),
-          const CircleAvatar(
-            radius: 13,
-            backgroundColor: Color(0xFF128078),
-            child: Text(
-              'DA',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
+            IconButton(
+              onPressed: () {},
+              tooltip: 'Notifications',
+              icon: const Icon(
+                Icons.notifications_none,
+                color: Color(0xFF64748B),
               ),
             ),
-          ),
-          if (isWide) ...[
-            const SizedBox(width: 9),
+            const CircleAvatar(
+              radius: 18,
+              backgroundColor: Color(0xFFCCFBF1),
+              child: Text(
+                'DA',
+                style: TextStyle(
+                  color: Color(0xFF0F766E),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
             const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Dr. Ahmed',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0F172A),
+                  ),
                 ),
                 Text(
                   'Veterinarian',
-                  style: TextStyle(fontSize: 9, color: Color(0xFF78879A)),
+                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                 ),
               ],
             ),
@@ -235,15 +321,50 @@ class _DashboardTopBar extends StatelessWidget {
   }
 }
 
+class _MobileNavigation extends StatelessWidget {
+  const _MobileNavigation({required this.selected, required this.onSelected});
+  final String selected;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) => NavigationBar(
+    height: 68,
+    selectedIndex: switch (selected) {
+      'Patients' || 'Patient profile' || 'Patients list' => 1,
+      'POS Billing' => 2,
+      'Reports' => 3,
+      _ => 0,
+    },
+    onDestinationSelected: (index) => onSelected(
+      ['Dashboard', 'Patients', 'POS Billing', 'Reports', 'More'][index],
+    ),
+    destinations: const [
+      NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+      NavigationDestination(icon: Icon(Icons.pets_outlined), label: 'Patients'),
+      NavigationDestination(
+        icon: Icon(Icons.point_of_sale_outlined),
+        label: 'POS',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.bar_chart_outlined),
+        label: 'Reports',
+      ),
+      NavigationDestination(icon: Icon(Icons.menu), label: 'More'),
+    ],
+  );
+}
+
 class _DashboardContent extends StatelessWidget {
-  const _DashboardContent();
+  const _DashboardContent({required this.onNavigate});
+
+  final ValueChanged<String> onNavigate;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 600;
-        final padding = isCompact ? 14.0 : 20.0;
+        final isCompact = constraints.maxWidth < 900;
+        final padding = isCompact ? 16.0 : 32.0;
 
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(padding, 18, padding, 24),
@@ -257,7 +378,7 @@ class _DashboardContent extends StatelessWidget {
                       'Dashboard',
                       style: TextStyle(
                         color: Color(0xFF17283F),
-                        fontSize: 20,
+                        fontSize: 26,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -266,12 +387,25 @@ class _DashboardContent extends StatelessWidget {
                     _formattedToday(),
                     style: const TextStyle(
                       color: Color(0xFF738198),
-                      fontSize: 10,
+                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              if (!isCompact)
+                FilledButton.icon(
+                  onPressed: () => onNavigate('POS Billing'),
+                  icon: const Icon(Icons.point_of_sale_outlined, size: 18),
+                  label: const Text('New sale'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F766E),
+                    minimumSize: const Size(0, 44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
               GridView.count(
                 crossAxisCount: isCompact ? 2 : 4,
                 shrinkWrap: true,
@@ -302,7 +436,47 @@ class _DashboardContent extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              if (isCompact) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => onNavigate('POS Billing'),
+                        icon: const Icon(
+                          Icons.point_of_sale_outlined,
+                          size: 18,
+                        ),
+                        label: const Text('New sale'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF0F766E),
+                          minimumSize: const Size(0, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => onNavigate('Patients list'),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add animal'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF0F766E),
+                          minimumSize: const Size(0, 48),
+                          side: const BorderSide(color: Color(0xFF0F766E)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
               if (isCompact) ...[
                 const SalesTrendPanel(),
                 const SizedBox(height: 12),
@@ -356,8 +530,16 @@ class _DashboardContent extends StatelessWidget {
                       child: DashboardTablePanel(
                         title: 'Low stock alerts',
                         entries: [
-                          DashboardTableEntry('Amoxicillin', '15 left', badge: true),
-                          DashboardTableEntry('Rabies Vax', '8 left', badge: true),
+                          DashboardTableEntry(
+                            'Amoxicillin',
+                            '15 left',
+                            badge: true,
+                          ),
+                          DashboardTableEntry(
+                            'Rabies Vax',
+                            '8 left',
+                            badge: true,
+                          ),
                         ],
                       ),
                     ),
@@ -378,22 +560,6 @@ class _DashboardContent extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _ComingSoonScreen extends StatelessWidget {
-  const _ComingSoonScreen({required this.item});
-
-  final String item;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        '$item is coming soon',
-        style: const TextStyle(color: Color(0xFF738198), fontSize: 14),
-      ),
     );
   }
 }

@@ -15,11 +15,11 @@ class DashboardSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 10, 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: const Color(0xFFE2E8ED)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x080E3550),
@@ -37,24 +37,24 @@ class DashboardSummaryCard extends StatelessWidget {
               Container(
                 width: 6,
                 height: 6,
-                decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: accent,
+                  shape: BoxShape.circle,
+                ),
               ),
               const SizedBox(width: 6),
               Text(
                 title,
-                style: const TextStyle(
-                  color: Color(0xFF66768C),
-                  fontSize: 9,
-                ),
+                style: const TextStyle(color: Color(0xFF66768C), fontSize: 14),
               ),
             ],
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           Text(
             value,
             style: const TextStyle(
               color: Color(0xFF17283F),
-              fontSize: 18,
+              fontSize: 26,
               height: 1,
               fontWeight: FontWeight.w700,
             ),

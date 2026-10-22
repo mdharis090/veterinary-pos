@@ -21,10 +21,10 @@ class DashboardTablePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8ED)),
         boxShadow: const [
           BoxShadow(
@@ -41,11 +41,11 @@ class DashboardTablePanel extends StatelessWidget {
             title,
             style: const TextStyle(
               color: Color(0xFF17283F),
-              fontSize: 10,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           for (var index = 0; index < entries.length; index++) ...[
             _EntryRow(entry: entries[index]),
             if (index < entries.length - 1)
@@ -65,17 +65,14 @@ class _EntryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 27,
+      height: 44,
       child: Row(
         children: [
           Expanded(
             child: Text(
               entry.label,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF41516A),
-                fontSize: 9,
-              ),
+              style: const TextStyle(color: Color(0xFF41516A), fontSize: 14),
             ),
           ),
           if (entry.badge)
@@ -89,7 +86,7 @@ class _EntryRow extends StatelessWidget {
                 entry.value,
                 style: const TextStyle(
                   color: Color(0xFF8B5C0A),
-                  fontSize: 8,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -97,10 +94,7 @@ class _EntryRow extends StatelessWidget {
           else
             Text(
               entry.value,
-              style: const TextStyle(
-                color: Color(0xFF56667E),
-                fontSize: 9,
-              ),
+              style: const TextStyle(color: Color(0xFF56667E), fontSize: 14),
             ),
         ],
       ),
