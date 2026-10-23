@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
 
-import 'clinic_pages.dart';
+import '../../auth/presentation/login_screen.dart';
+import '../../batches/presentation/batches_screen.dart';
+import '../../billing/presentation/pos_billing_screen.dart';
+import '../../consultations/presentation/consultations_screen.dart';
+import '../../inventory/presentation/inventory_screen.dart';
+import '../../medicines/presentation/medicines_screen.dart';
+import '../../owners/presentation/owners_screen.dart';
 import '../../patients/presentation/patient_detail_screen.dart';
+import '../../patients/presentation/patient_list_screen.dart';
+import '../../payments/presentation/payments_screen.dart';
+import '../../prescriptions/presentation/prescriptions_screen.dart';
+import '../../purchases/presentation/purchase_screens.dart';
+import '../../purchases/presentation/purchases_list_screen.dart';
+import '../../reports/presentation/reports_screen.dart';
+import '../../returns/presentation/returns_screen.dart';
+import '../../sales/presentation/sales_screen.dart';
+import '../../settings/presentation/settings_screen.dart';
+import '../../suppliers/presentation/suppliers_screen.dart';
 import '../widgets/dashboard_sidebar.dart';
 import '../widgets/dashboard_summary_card.dart';
 import '../widgets/dashboard_table_panel.dart';
@@ -15,42 +31,23 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  static const _navItems = [
-    'Dashboard',
-    'Patients',
-    'Owners',
-    'Consultations',
-    'Prescriptions',
-    'Medicines',
-    'Inventory',
-    'Batches',
-    'Suppliers',
-    'Purchases',
-    'POS Billing',
-    'Sales',
-    'Returns',
-    'Payments',
-    'Reports',
-    'Settings',
-  ];
-
-  static const _navIcons = [
-    Icons.grid_view_rounded,
-    Icons.pets_outlined,
-    Icons.people_outline,
-    Icons.chat_bubble_outline,
-    Icons.description_outlined,
-    Icons.medication_outlined,
-    Icons.inventory_2_outlined,
-    Icons.layers_outlined,
-    Icons.local_shipping_outlined,
-    Icons.shopping_bag_outlined,
-    Icons.credit_card_outlined,
-    Icons.receipt_long_outlined,
-    Icons.keyboard_return,
-    Icons.payments_outlined,
-    Icons.bar_chart_outlined,
-    Icons.settings_outlined,
+  static const _navigation = <(String, IconData)>[
+    ('Dashboard', Icons.grid_view_rounded),
+    ('Patients', Icons.pets_outlined),
+    ('Owners', Icons.people_outline),
+    ('Consultations', Icons.chat_bubble_outline),
+    ('Prescriptions', Icons.description_outlined),
+    ('Medicines', Icons.medication_outlined),
+    ('Inventory', Icons.inventory_2_outlined),
+    ('Batches', Icons.layers_outlined),
+    ('Suppliers', Icons.local_shipping_outlined),
+    ('Purchases', Icons.shopping_bag_outlined),
+    ('POS Billing', Icons.point_of_sale_outlined),
+    ('Sales', Icons.receipt_long_outlined),
+    ('Returns', Icons.keyboard_return),
+    ('Payments', Icons.payments_outlined),
+    ('Reports', Icons.bar_chart_outlined),
+    ('Settings', Icons.settings_outlined),
   ];
 
   String _selectedItem = 'Dashboard';
@@ -68,34 +65,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  Widget _buildScreen() => switch (_selectedItem) {
+    'Dashboard' => _DashboardContent(onNavigate: _selectItem),
+    'Patients' || 'Patients list' => PatientsListPage(onNavigate: _selectItem),
+    'Patient profile' => PatientDetailScreen(onNavigate: _selectItem),
+    'Owners' => const OwnersPage(),
+    'Consultations' => const ConsultationsScreen(),
+    'Prescriptions' => const PrescriptionsPage(),
+    'Medicines' => const MedicinesPage(),
+    'Inventory' => const InventoryScreen(),
+    'Batches' => const BatchesPage(),
+    'Suppliers' => const SuppliersPage(),
+    'Purchases' => PurchasesPage(onNavigate: _selectItem),
+    'New purchase' => const NewPurchaseScreen(),
+    'POS Billing' => PosBillingScreen(),
+    'Sales' => const SalesPage(),
+    'Returns' => const ReturnsScreen(),
+    'Payments' => const PaymentsScreen(),
+    'Reports' => const ReportsScreen(),
+    'Settings' => const SettingsScreen(),
+    _ => const SizedBox.shrink(),
+  };
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 760;
-        final isMobile = constraints.maxWidth < 650;
+        final wide = constraints.maxWidth >= 760;
+        final mobile = constraints.maxWidth < 650;
+        if (_signedOut) return LoginScreen(onSignIn: _signIn);
 
-        if (_signedOut) {
-          return LoginScreen(onSignIn: _signIn);
-        }
+        final navItems = _navigation.map((item) => item.$1).toList();
+        final navIcons = _navigation.map((item) => item.$2).toList();
 
         return Scaffold(
           backgroundColor: const Color(0xFFF4F7F6),
-          drawer: isWide
+          drawer: wide
               ? null
               : Drawer(
                   child: SafeArea(
                     child: DashboardSidebar(
-                      items: _navItems,
-                      icons: _navIcons,
+                      items: navItems,
+                      icons: navIcons,
                       selectedItem: _selectedItem,
-                      onSignOut: () {
-                        Navigator.of(context).pop();
-                        setState(() => _signedOut = true);
-                      },
                       onSelected: (item) {
                         Navigator.of(context).pop();
                         _selectItem(item);
+                      },
+                      onSignOut: () {
+                        Navigator.of(context).pop();
+                        setState(() => _signedOut = true);
                       },
                     ),
                   ),
@@ -104,56 +123,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
           body: SafeArea(
             child: Row(
               children: [
-                if (isWide)
+                if (wide)
                   SizedBox(
                     width: 232,
                     child: DashboardSidebar(
-                      items: _navItems,
-                      icons: _navIcons,
+                      items: navItems,
+                      icons: navIcons,
                       selectedItem: _selectedItem,
-                      onSignOut: () => setState(() => _signedOut = true),
                       onSelected: _selectItem,
+                      onSignOut: () => setState(() => _signedOut = true),
                     ),
                   ),
                 Expanded(
                   child: Column(
                     children: [
-                      _DashboardTopBar(
-                        isWide: isWide,
-                        isMobile: isMobile,
+                      _TopBar(
+                        mobile: mobile,
                         title: _selectedItem == 'Dashboard'
                             ? 'Vetnalay'
                             : _selectedItem,
                       ),
-                      Expanded(
-                        child:
-                            _selectedItem == 'Patients' ||
-                                _selectedItem == 'Patient profile'
-                            ? PatientDetailScreen(
-                                onNavigate: (page) => _selectItem(page),
-                              )
-                            : _selectedItem == 'Dashboard'
-                            ? _DashboardContent(onNavigate: _selectItem)
-                            : ClinicPage(
-                                page: _selectedItem == 'Patients list'
-                                    ? 'Patients'
-                                    : _selectedItem,
-                                onNavigate: _selectItem,
-                              ),
-                      ),
+                      Expanded(child: _buildScreen()),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          bottomNavigationBar: isMobile && !_drawerOpen
+          bottomNavigationBar: mobile && !_drawerOpen
               ? Builder(
-                  builder: (context) => _MobileNavigation(
+                  builder: (scaffoldContext) => _MobileNavigation(
                     selected: _selectedItem,
                     onSelected: (item) {
                       if (item == 'More') {
-                        Scaffold.of(context).openDrawer();
+                        Scaffold.of(scaffoldContext).openDrawer();
                       } else {
                         _selectItem(item);
                       }
@@ -167,42 +170,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class _DashboardTopBar extends StatelessWidget {
-  const _DashboardTopBar({
-    required this.isWide,
-    required this.isMobile,
-    required this.title,
-  });
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.mobile, required this.title});
 
-  final bool isWide;
-  final bool isMobile;
+  final bool mobile;
   final String title;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: isMobile ? 58 : 64,
-      padding: EdgeInsets.symmetric(horizontal: isWide ? 20 : 12),
+      height: 64,
+      padding: EdgeInsets.symmetric(horizontal: mobile ? 10 : 24),
       decoration: BoxDecoration(
-        color: isMobile ? const Color(0xFF134E4A) : Colors.white,
+        color: mobile ? const Color(0xFF134E4A) : Colors.white,
         border: const Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
       ),
       child: Row(
         children: [
-          if (isMobile) ...[
+          if (mobile) ...[
             Builder(
               builder: (context) => IconButton(
                 onPressed: () => Scaffold.of(context).openDrawer(),
                 icon: const Icon(Icons.menu_rounded),
                 tooltip: 'Open navigation',
-                visualDensity: VisualDensity.compact,
                 color: Colors.white,
               ),
             ),
-            const SizedBox(width: 4),
             Expanded(
               child: Text(
                 title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
@@ -215,64 +213,12 @@ class _DashboardTopBar extends StatelessWidget {
               tooltip: 'Notifications',
               icon: const Icon(Icons.notifications_none, color: Colors.white),
             ),
-            const CircleAvatar(
-              radius: 16,
-              backgroundColor: Color(0xFFCCFBF1),
-              child: Text(
-                'DA',
-                style: TextStyle(
-                  color: Color(0xFF134E4A),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            const _UserAvatar(light: true),
           ] else ...[
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: SizedBox(
-                    height: 44,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search patients, owners, invoices...',
-                        hintStyle: const TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 14,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          size: 20,
-                          color: Color(0xFF64748B),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        contentPadding: EdgeInsets.zero,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFCBD5E1),
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFCBD5E1),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF0F766E),
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                child: SizedBox(width: 420, height: 44, child: _GlobalSearch()),
               ),
             ),
             IconButton(
@@ -283,18 +229,7 @@ class _DashboardTopBar extends StatelessWidget {
                 color: Color(0xFF64748B),
               ),
             ),
-            const CircleAvatar(
-              radius: 18,
-              backgroundColor: Color(0xFFCCFBF1),
-              child: Text(
-                'DA',
-                style: TextStyle(
-                  color: Color(0xFF0F766E),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            const _UserAvatar(),
             const SizedBox(width: 10),
             const Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -321,8 +256,57 @@ class _DashboardTopBar extends StatelessWidget {
   }
 }
 
+class _GlobalSearch extends StatelessWidget {
+  const _GlobalSearch();
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    decoration: InputDecoration(
+      hintText: 'Search patients, owners, invoices...',
+      hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
+      prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF64748B)),
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      contentPadding: EdgeInsets.zero,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF0F766E), width: 2),
+      ),
+    ),
+  );
+}
+
+class _UserAvatar extends StatelessWidget {
+  const _UserAvatar({this.light = false});
+
+  final bool light;
+
+  @override
+  Widget build(BuildContext context) => CircleAvatar(
+    radius: 18,
+    backgroundColor: const Color(0xFFCCFBF1),
+    child: Text(
+      'DA',
+      style: TextStyle(
+        color: light ? const Color(0xFF134E4A) : const Color(0xFF0F766E),
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
+}
+
 class _MobileNavigation extends StatelessWidget {
   const _MobileNavigation({required this.selected, required this.onSelected});
+
   final String selected;
   final ValueChanged<String> onSelected;
 
@@ -360,208 +344,206 @@ class _DashboardContent extends StatelessWidget {
   final ValueChanged<String> onNavigate;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 900;
-        final padding = isCompact ? 16.0 : 32.0;
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final compact = constraints.maxWidth < 900;
+      final mobile = constraints.maxWidth < 650;
+      final padding = mobile ? 16.0 : 32.0;
 
-        return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(padding, 18, padding, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      return SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(padding, 24, padding, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Dashboard',
+                    style: TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  _formattedToday(),
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 14,
+                  ),
+                ),
+                if (!compact) ...[
+                  const SizedBox(width: 16),
+                  FilledButton.icon(
+                    onPressed: () => onNavigate('POS Billing'),
+                    icon: const Icon(Icons.point_of_sale_outlined, size: 18),
+                    label: const Text('New sale'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F766E),
+                      minimumSize: const Size(0, 44),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 18),
+            GridView.count(
+              crossAxisCount: compact ? 2 : 4,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: mobile ? 1.55 : 2.15,
+              children: const [
+                DashboardSummaryCard(
+                  title: 'Owners',
+                  value: '5',
+                  accent: Color(0xFF0F766E),
+                ),
+                DashboardSummaryCard(
+                  title: 'Animals',
+                  value: '5',
+                  accent: Color(0xFFF97360),
+                ),
+                DashboardSummaryCard(
+                  title: 'Medicines',
+                  value: '5',
+                  accent: Color(0xFFF59E0B),
+                ),
+                DashboardSummaryCard(
+                  title: 'Revenue',
+                  value: '1,350',
+                  accent: Color(0xFF3B82F6),
+                ),
+              ],
+            ),
+            if (mobile) ...[
+              const SizedBox(height: 12),
               Row(
                 children: [
-                  const Expanded(
-                    child: Text(
-                      'Dashboard',
-                      style: TextStyle(
-                        color: Color(0xFF17283F),
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => onNavigate('POS Billing'),
+                      icon: const Icon(Icons.point_of_sale_outlined, size: 18),
+                      label: const Text('New sale'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F766E),
+                        minimumSize: const Size(0, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ),
-                  Text(
-                    _formattedToday(),
-                    style: const TextStyle(
-                      color: Color(0xFF738198),
-                      fontSize: 14,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => onNavigate('Patients'),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add animal'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF0F766E),
+                        minimumSize: const Size(0, 48),
+                        side: const BorderSide(color: Color(0xFF0F766E)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              if (!isCompact)
-                FilledButton.icon(
-                  onPressed: () => onNavigate('POS Billing'),
-                  icon: const Icon(Icons.point_of_sale_outlined, size: 18),
-                  label: const Text('New sale'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F766E),
-                    minimumSize: const Size(0, 44),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              GridView.count(
-                crossAxisCount: isCompact ? 2 : 4,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: isCompact ? 1.9 : 1.85,
-                children: const [
-                  DashboardSummaryCard(
-                    title: 'Owners',
-                    value: '5',
-                    accent: Color(0xFF21A69A),
-                  ),
-                  DashboardSummaryCard(
-                    title: 'Animals',
-                    value: '5',
-                    accent: Color(0xFFFF6E63),
-                  ),
-                  DashboardSummaryCard(
-                    title: 'Medicines',
-                    value: '5',
-                    accent: Color(0xFFF4A623),
-                  ),
-                  DashboardSummaryCard(
-                    title: 'Revenue',
-                    value: '1,350',
-                    accent: Color(0xFF4285F4),
-                  ),
-                ],
-              ),
-              if (isCompact) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => onNavigate('POS Billing'),
-                        icon: const Icon(
-                          Icons.point_of_sale_outlined,
-                          size: 18,
-                        ),
-                        label: const Text('New sale'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F766E),
-                          minimumSize: const Size(0, 48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => onNavigate('Patients list'),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add animal'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0F766E),
-                          minimumSize: const Size(0, 48),
-                          side: const BorderSide(color: Color(0xFF0F766E)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 16),
-              if (isCompact) ...[
-                const SalesTrendPanel(),
-                const SizedBox(height: 12),
-                const DashboardTablePanel(
-                  title: 'Top medicines',
-                  entries: [
-                    DashboardTableEntry('Amoxicillin', '50'),
-                    DashboardTableEntry('Rabies Vax', '30'),
-                    DashboardTableEntry('Deworming', '20'),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const DashboardTablePanel(
-                  title: 'Low stock alerts',
-                  entries: [
-                    DashboardTableEntry('Amoxicillin', '15 left', badge: true),
-                    DashboardTableEntry('Rabies Vax', '8 left', badge: true),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const DashboardTablePanel(
-                  title: 'Upcoming visits',
-                  entries: [
-                    DashboardTableEntry('Nyxie', '15 Oct'),
-                    DashboardTableEntry('Tommy', '18 Oct'),
-                  ],
-                ),
-              ] else ...[
-                const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: SalesTrendPanel()),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: DashboardTablePanel(
-                        title: 'Top medicines',
-                        entries: [
-                          DashboardTableEntry('Amoxicillin', '50'),
-                          DashboardTableEntry('Rabies Vax', '30'),
-                          DashboardTableEntry('Deworming', '20'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: DashboardTablePanel(
-                        title: 'Low stock alerts',
-                        entries: [
-                          DashboardTableEntry(
-                            'Amoxicillin',
-                            '15 left',
-                            badge: true,
-                          ),
-                          DashboardTableEntry(
-                            'Rabies Vax',
-                            '8 left',
-                            badge: true,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: DashboardTablePanel(
-                        title: 'Upcoming visits',
-                        entries: [
-                          DashboardTableEntry('Nyxie', '15 Oct'),
-                          DashboardTableEntry('Tommy', '18 Oct'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ],
-          ),
-        );
-      },
-    );
-  }
+            const SizedBox(height: 16),
+            if (compact) ...[
+              const SalesTrendPanel(),
+              const SizedBox(height: 16),
+              const DashboardTablePanel(
+                title: 'Top medicines',
+                entries: [
+                  DashboardTableEntry('Amoxicillin', '50'),
+                  DashboardTableEntry('Rabies Vax', '30'),
+                  DashboardTableEntry('Deworming', '20'),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const DashboardTablePanel(
+                title: 'Low stock alerts',
+                entries: [
+                  DashboardTableEntry('Amoxicillin', '15 left', badge: true),
+                  DashboardTableEntry('Rabies Vax', '8 left', badge: true),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const DashboardTablePanel(
+                title: 'Upcoming visits',
+                entries: [
+                  DashboardTableEntry('Nyxie', '15 Oct'),
+                  DashboardTableEntry('Tommy', '18 Oct'),
+                ],
+              ),
+            ] else ...[
+              const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: SalesTrendPanel()),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: DashboardTablePanel(
+                      title: 'Top medicines',
+                      entries: [
+                        DashboardTableEntry('Amoxicillin', '50'),
+                        DashboardTableEntry('Rabies Vax', '30'),
+                        DashboardTableEntry('Deworming', '20'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: DashboardTablePanel(
+                      title: 'Low stock alerts',
+                      entries: [
+                        DashboardTableEntry(
+                          'Amoxicillin',
+                          '15 left',
+                          badge: true,
+                        ),
+                        DashboardTableEntry(
+                          'Rabies Vax',
+                          '8 left',
+                          badge: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: DashboardTablePanel(
+                      title: 'Upcoming visits',
+                      entries: [
+                        DashboardTableEntry('Nyxie', '15 Oct'),
+                        DashboardTableEntry('Tommy', '18 Oct'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      );
+    },
+  );
 }
 
 String _formattedToday() {
