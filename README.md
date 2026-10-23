@@ -30,6 +30,16 @@ The same feature screens adapt to narrow mobile layouts and wide desktop
 layouts. Shared components include page frames, panels, forms, buttons, tables,
 summary cards, tabs, and charts.
 
+## Navigation
+
+Named routes are declared under `lib/src/core/routes/`. `app_route_path.dart`
+contains the route paths, `app_routes_named.dart` exposes their named-route
+constants and dashboard-section mapping, and `app_routes.dart` registers the
+screen builders with `MaterialApp`. The dashboard continues to host its
+responsive navigation shell while using the shared screen registry for its
+feature pages. Feature screens can also be opened directly with
+`Navigator.pushNamed`.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'src/features/dashboard/presentation/dashboard_screen.dart';
+import 'src/core/routes/app_routes.dart';
+import 'src/core/routes/app_routes_named.dart';
 
 void main() {
   runApp(const VeterinaryPosApp());
@@ -60,7 +61,8 @@ class VeterinaryPosApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const DashboardScreen(),
+      initialRoute: AppRoutesNamed.root,
+      onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
 }

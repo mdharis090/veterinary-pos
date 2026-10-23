@@ -1,0 +1,22 @@
+abstract final class AppRoutePath {
+  static const root = '/';
+  static const dashboard = '/dashboard';
+  static const login = '/login';
+  static const patients = '/patients';
+  static const patientProfile = '/patients/detail';
+  static const owners = '/owners';
+  static const consultations = '/consultations';
+  static const prescriptions = '/prescriptions';
+  static const medicines = '/medicines';
+  static const inventory = '/inventory';
+  static const batches = '/batches';
+  static const suppliers = '/suppliers';
+  static const purchases = '/purchases';
+  static const newPurchase = '/purchases/new';
+  static const posBilling = '/billing';
+  static const sales = '/sales';
+  static const returns = '/returns';
+  static const payments = '/payments';
+  static const reports = '/reports';
+  static const settings = '/settings';
+}

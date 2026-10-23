@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:veterinary_pos/main.dart';
+import 'package:veterinary_pos/src/core/routes/app_routes_named.dart';
 
 void main() {
   testWidgets('dashboard renders summary and panels', (tester) async {
@@ -15,6 +16,19 @@ void main() {
     expect(find.text('Top medicines'), findsOneWidget);
     expect(find.text('Low stock alerts'), findsOneWidget);
     expect(find.text('Upcoming visits'), findsOneWidget);
+  });
+
+  testWidgets('registered named routes open feature screens', (tester) async {
+    await tester.pumpWidget(const VeterinaryPosApp());
+
+    final navigator = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
+    navigator.pushNamed(AppRoutesNamed.owners);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Owners'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('Patients list opens the patient detail screen', (tester) async {

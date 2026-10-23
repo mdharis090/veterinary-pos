@@ -1,23 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:veterinary_pos/src/features/auth/presentation/login_screen.dart';
 
-import '../../auth/presentation/login_screen.dart';
-import '../../batches/presentation/batches_screen.dart';
-import '../../billing/presentation/pos_billing_screen.dart';
-import '../../consultations/presentation/consultations_screen.dart';
-import '../../inventory/presentation/inventory_screen.dart';
-import '../../medicines/presentation/medicines_screen.dart';
-import '../../owners/presentation/owners_screen.dart';
-import '../../patients/presentation/patient_detail_screen.dart';
-import '../../patients/presentation/patient_list_screen.dart';
-import '../../payments/presentation/payments_screen.dart';
-import '../../prescriptions/presentation/prescriptions_screen.dart';
-import '../../purchases/presentation/purchase_screens.dart';
-import '../../purchases/presentation/purchases_list_screen.dart';
-import '../../reports/presentation/reports_screen.dart';
-import '../../returns/presentation/returns_screen.dart';
-import '../../sales/presentation/sales_screen.dart';
-import '../../settings/presentation/settings_screen.dart';
-import '../../suppliers/presentation/suppliers_screen.dart';
+import '../../../core/routes/app_route_screens.dart';
 import '../widgets/dashboard_sidebar.dart';
 import '../widgets/dashboard_summary_card.dart';
 import '../widgets/dashboard_table_panel.dart';
@@ -65,27 +49,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  Widget _buildScreen() => switch (_selectedItem) {
-    'Dashboard' => _DashboardContent(onNavigate: _selectItem),
-    'Patients' || 'Patients list' => PatientsListPage(onNavigate: _selectItem),
-    'Patient profile' => PatientDetailScreen(onNavigate: _selectItem),
-    'Owners' => const OwnersPage(),
-    'Consultations' => const ConsultationsScreen(),
-    'Prescriptions' => const PrescriptionsPage(),
-    'Medicines' => const MedicinesPage(),
-    'Inventory' => const InventoryScreen(),
-    'Batches' => const BatchesPage(),
-    'Suppliers' => const SuppliersPage(),
-    'Purchases' => PurchasesPage(onNavigate: _selectItem),
-    'New purchase' => const NewPurchaseScreen(),
-    'POS Billing' => PosBillingScreen(),
-    'Sales' => const SalesPage(),
-    'Returns' => const ReturnsScreen(),
-    'Payments' => const PaymentsScreen(),
-    'Reports' => const ReportsScreen(),
-    'Settings' => const SettingsScreen(),
-    _ => const SizedBox.shrink(),
-  };
+  Widget _buildScreen() => _selectedItem == 'Dashboard'
+      ? _DashboardContent(onNavigate: _selectItem)
+      : AppRouteScreens.forDashboardSection(
+          _selectedItem,
+          onNavigate: _selectItem,
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +62,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 760;
         final mobile = constraints.maxWidth < 650;
-        if (_signedOut) return LoginScreen(onSignIn: _signIn);
+        if (_signedOut) {
+          return LoginScreen(onSignIn: _signIn);
+        }
 
         final navItems = _navigation.map((item) => item.$1).toList();
         final navIcons = _navigation.map((item) => item.$2).toList();
