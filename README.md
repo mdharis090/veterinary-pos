@@ -30,6 +30,32 @@ The same feature screens adapt to narrow mobile layouts and wide desktop
 layouts. Shared components include page frames, panels, forms, buttons, tables,
 summary cards, tabs, and charts.
 
+## Node.js API
+
+The Flutter client uses a shared HTTP client under `lib/src/core/network/` and
+keeps an API class for each backend route under the matching feature's
+`data/` directory. Requests use the Node API's `/api` paths, JSON envelopes,
+and bearer-token authentication. The login screen stores JWTs using secure
+platform storage; sign-out clears the token. Backend-backed list screens show
+loading, server errors, and a retry action instead of silently substituting
+sample data.
+
+The supplied Node snippet mounts `/api/purchases` but does not include its
+`routes/purchases` implementation. The purchase list/create UI remains a
+placeholder until that route's request and response contract is provided.
+
+The default API address is `http://172.17.2.49:5000/api`, matching the
+development machine's LAN address and the Node server's default port. Override
+it at build/run time if the machine's address or server port changes:
+
+```powershell
+flutter run --dart-define=API_BASE_URL=https://your-api-host/api
+```
+
+Ensure the Node server is running and reachable through the machine's firewall.
+For production, configure HTTPS. The Android debug manifest permits local HTTP
+during development; release builds should use HTTPS.
+
 ## Navigation
 
 Named routes are declared under `lib/src/core/routes/`. `app_route_path.dart`

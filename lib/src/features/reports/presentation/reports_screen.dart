@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/reports_api.dart';
+import '../../shared/presentation/api_clinic_table.dart';
 import '../../shared/presentation/clinic_ui.dart';
 
 class ReportsScreen extends StatelessWidget {
@@ -49,22 +51,23 @@ class ReportsScreen extends StatelessWidget {
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            final medicines = ClinicTable(
+            final medicines = ApiClinicTable(
               title: 'Top medicines',
               columns: const ['Medicine', 'Units sold'],
-              rows: const [
-                ['Amoxicillin 500mg', '50'],
-                ['Rabies vaccine', '30'],
-                ['Deworming tablet', '20'],
+              loadRows: ReportsApi().topMedicines,
+              mapRow: (medicine) => [
+                apiCell(medicine, 'med_name'),
+                apiCell(medicine, 'total_qty_sold'),
               ],
             );
-            final customers = ClinicTable(
+            final customers = ApiClinicTable(
               title: 'Top customers',
-              columns: const ['Owner', 'Visits', 'Sales'],
-              rows: const [
-                ['Sara Krugs', '8', 'Rs 4,250'],
-                ['Ali Raza', '6', 'Rs 3,100'],
-                ['Hina Khan', '5', 'Rs 2,850'],
+              columns: const ['Owner', 'Invoices', 'Sales'],
+              loadRows: ReportsApi().ownerSales,
+              mapRow: (owner) => [
+                apiCell(owner, 'ow_name'),
+                apiCell(owner, 'total_invoices'),
+                'Rs ${apiCell(owner, 'total_spent')}',
               ],
             );
             if (constraints.maxWidth < 760) {

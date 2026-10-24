@@ -8,7 +8,12 @@ void main() {
 }
 
 class VeterinaryPosApp extends StatelessWidget {
-  const VeterinaryPosApp({super.key});
+  const VeterinaryPosApp({
+    this.initialRoute = AppRoutesNamed.root,
+    super.key,
+  });
+
+  final String initialRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +66,7 @@ class VeterinaryPosApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: AppRoutesNamed.root,
+      initialRoute: initialRoute,
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }

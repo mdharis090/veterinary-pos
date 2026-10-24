@@ -28,15 +28,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             children: [
               for (final section in _sections)
-                ListTile(
-                  selected: section == _selected,
-                  selectedTileColor: const Color(0xFFCCFBF1),
-                  selectedColor: clinicTeal,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  child: ListTile(
+                    selected: section == _selected,
+                    selectedTileColor: const Color(0xFFCCFBF1),
+                    selectedColor: clinicTeal,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    title: Text(section),
+                    onTap: () => setState(() => _selected = section),
                   ),
-                  title: Text(section),
-                  onTap: () => setState(() => _selected = section),
                 ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/auth/presentation/auth_gate.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import 'app_route_screens.dart';
@@ -8,11 +9,10 @@ import 'app_routes_named.dart';
 abstract final class AppRoutes {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final routeName = settings.name ?? AppRoutesNamed.root;
-    final normalizedRoute = routeName == AppRoutesNamed.root
-        ? AppRoutesNamed.dashboard
-        : routeName;
+    final normalizedRoute = routeName;
 
     final WidgetBuilder? builder = switch (normalizedRoute) {
+      AppRoutesNamed.root => (_) => const AuthGate(),
       AppRoutesNamed.dashboard => (_) => const DashboardScreen(),
       AppRoutesNamed.login => (context) => LoginScreen(
         onSignIn: () => Navigator.of(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/consultations_api.dart';
+import '../../shared/presentation/api_clinic_table.dart';
 import '../../shared/presentation/clinic_ui.dart';
 
 class ConsultationsScreen extends StatefulWidget {
@@ -28,13 +30,15 @@ class _ConsultationsScreenState extends State<ConsultationsScreen> {
     title: 'Consultations',
     child: LayoutBuilder(
       builder: (context, constraints) {
-        final table = ClinicTable(
+        final table = ApiClinicTable(
           title: 'Recent consultations',
           columns: const ['Animal', 'Vet', 'Diagnosis', 'Follow-up'],
-          rows: const [
-            ['Nyxie', 'Dr. Ahmed', 'Viral infection', '20 Oct 2026'],
-            ['Tommy', 'Dr. Ahmed', 'Annual check-up', '18 Oct 2026'],
-            ['Kitty', 'Dr. Sana', 'Vaccination', '12 Sep 2027'],
+          loadRows: ConsultationsApi().list,
+          mapRow: (consultation) => [
+            apiCell(consultation, 'animal_name'),
+            apiCell(consultation, 'vet_name'),
+            apiCell(consultation, 'con_diagnosis'),
+            apiCell(consultation, 'con_follow_up'),
           ],
         );
         final form = ClinicPanel(

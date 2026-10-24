@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/inventory_api.dart';
+import '../../shared/presentation/api_clinic_table.dart';
 import '../../shared/presentation/clinic_ui.dart';
 
 class InventoryScreen extends StatelessWidget {
@@ -21,9 +23,9 @@ class InventoryScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        const ClinicTable(
+        ApiClinicTable(
           title: 'Stock overview',
-          columns: [
+          columns: const [
             'Medicine',
             'Category',
             'Stock',
@@ -31,26 +33,14 @@ class InventoryScreen extends StatelessWidget {
             'Price',
             'Status',
           ],
-          rows: [
-            [
-              'Amoxicillin 500mg',
-              'Antibiotic',
-              '15',
-              '20',
-              'Rs 10.00',
-              'Low stock',
-            ],
-            ['Rabies vaccine', 'Vaccine', '38', '10', 'Rs 250.00', 'OK'],
-            ['Deworming tablet', 'Parasite care', '64', '15', 'Rs 75.00', 'OK'],
-            [
-              'Flea treatment',
-              'Parasite care',
-              '0',
-              '10',
-              'Rs 320.00',
-              'Out of stock',
-            ],
-            ['Vitamin supplement', 'Supplement', '42', '12', 'Rs 180.00', 'OK'],
+          loadRows: InventoryApi().stock,
+          mapRow: (medicine) => [
+            apiCell(medicine, 'med_name'),
+            apiCell(medicine, 'med_category'),
+            apiCell(medicine, 'med_stock'),
+            apiCell(medicine, 'med_reorder_level'),
+            'Rs ${apiCell(medicine, 'med_sale_price')}',
+            apiCell(medicine, 'stock_status'),
           ],
         ),
       ],

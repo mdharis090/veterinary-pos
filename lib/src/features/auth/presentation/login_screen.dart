@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../../core/network/api_exception.dart';
+import '../../../core/network/token_storage.dart';
+import '../data/auth_api.dart';
 import '../../shared/presentation/clinic_ui.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,8 +19,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   bool _hidePassword = true;
   bool _remember = true;
+  bool _submitting = false;
   String? _usernameError;
   String? _passwordError;
+  String? _loginError;
 
   @override
   void dispose() {
@@ -25,14 +31,38 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     setState(() {
       _usernameError = _username.text.trim().isEmpty
           ? 'Username is required.'
           : null;
       _passwordError = _password.text.isEmpty ? 'Password is required.' : null;
+      _loginError = null;
     });
-    if (_usernameError == null && _passwordError == null) widget.onSignIn();
+    if (_usernameError != null || _passwordError != null) return;
+
+    setState(() => _submitting = true);
+    try {
+      final session = await AuthApi().login(
+        username: _username.text.trim(),
+        password: _password.text,
+      );
+      await TokenStorage.instance.saveToken(
+        session.token,
+        persist: _remember,
+      );
+      if (mounted) widget.onSignIn();
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _loginError = error.message);
+    } on PlatformException {
+      if (mounted) {
+        setState(
+          () => _loginError = 'Secure sign-in storage is unavailable.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -115,7 +145,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                ClinicPrimaryButton(label: 'Sign In', onPressed: _submit),
+                if (_loginError != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _loginError!,
+                    style: const TextStyle(color: Color(0xFFB91C1C)),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                ClinicPrimaryButton(
+                  label: 'Sign In',
+                  loading: _submitting,
+                  onPressed: _submitting ? null : _submit,
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'New here? Contact admin',

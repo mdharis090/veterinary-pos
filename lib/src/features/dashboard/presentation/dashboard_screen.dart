@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:veterinary_pos/src/features/auth/presentation/login_screen.dart';
 
+import '../../../core/network/token_storage.dart';
 import '../../../core/routes/app_route_screens.dart';
+import '../../reports/data/reports_api.dart';
 import '../widgets/dashboard_sidebar.dart';
 import '../widgets/dashboard_summary_card.dart';
 import '../widgets/dashboard_table_panel.dart';
@@ -56,6 +59,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onNavigate: _selectItem,
         );
 
+  Future<void> _signOut() async {
+    try {
+      await TokenStorage.instance.clearToken();
+    } on PlatformException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not clear the saved session.')),
+        );
+      }
+      return;
+    }
+    if (mounted) setState(() => _signedOut = true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -85,7 +102,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                       onSignOut: () {
                         Navigator.of(context).pop();
-                        setState(() => _signedOut = true);
+                        _signOut();
                       },
                     ),
                   ),
@@ -102,7 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icons: navIcons,
                       selectedItem: _selectedItem,
                       onSelected: _selectItem,
-                      onSignOut: () => setState(() => _signedOut = true),
+                      onSignOut: _signOut,
                     ),
                   ),
                 Expanded(
@@ -363,35 +380,9 @@ class _DashboardContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 18),
-            GridView.count(
+            _DashboardSummaryGrid(
               crossAxisCount: compact ? 2 : 4,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
               childAspectRatio: mobile ? 1.55 : 2.15,
-              children: const [
-                DashboardSummaryCard(
-                  title: 'Owners',
-                  value: '5',
-                  accent: Color(0xFF0F766E),
-                ),
-                DashboardSummaryCard(
-                  title: 'Animals',
-                  value: '5',
-                  accent: Color(0xFFF97360),
-                ),
-                DashboardSummaryCard(
-                  title: 'Medicines',
-                  value: '5',
-                  accent: Color(0xFFF59E0B),
-                ),
-                DashboardSummaryCard(
-                  title: 'Revenue',
-                  value: '1,350',
-                  accent: Color(0xFF3B82F6),
-                ),
-              ],
             ),
             if (mobile) ...[
               const SizedBox(height: 12),
@@ -515,6 +506,100 @@ class _DashboardContent extends StatelessWidget {
       );
     },
   );
+}
+
+class _DashboardSummaryGrid extends StatefulWidget {
+  const _DashboardSummaryGrid({
+    required this.crossAxisCount,
+    required this.childAspectRatio,
+  });
+
+  final int crossAxisCount;
+  final double childAspectRatio;
+
+  @override
+  State<_DashboardSummaryGrid> createState() => _DashboardSummaryGridState();
+}
+
+class _DashboardSummaryGridState extends State<_DashboardSummaryGrid> {
+  late Future<Map<String, dynamic>> _summary;
+
+  @override
+  void initState() {
+    super.initState();
+    _summary = ReportsApi().dashboard();
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<Map<String, dynamic>>(
+    future: _summary,
+    builder: (context, snapshot) {
+      final data = snapshot.data;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          GridView.count(
+            crossAxisCount: widget.crossAxisCount,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: widget.childAspectRatio,
+            children: [
+              DashboardSummaryCard(
+                title: 'Owners',
+                value: _value(data?['total_owners'], snapshot.hasError),
+                accent: const Color(0xFF0F766E),
+              ),
+              DashboardSummaryCard(
+                title: 'Animals',
+                value: _value(data?['total_animals'], snapshot.hasError),
+                accent: const Color(0xFFF97360),
+              ),
+              DashboardSummaryCard(
+                title: 'Medicines',
+                value: _value(data?['total_medicines'], snapshot.hasError),
+                accent: const Color(0xFFF59E0B),
+              ),
+              DashboardSummaryCard(
+                title: 'Revenue',
+                value: _value(data?['total_revenue'], snapshot.hasError),
+                accent: const Color(0xFF3B82F6),
+              ),
+            ],
+          ),
+          if (snapshot.hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      snapshot.error.toString(),
+                      style: const TextStyle(color: Color(0xFFB91C1C)),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () =>
+                        setState(() => _summary = ReportsApi().dashboard()),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      );
+    },
+  );
+
+  String _value(Object? value, bool failed) {
+    if (value == null) return failed ? '—' : '…';
+    if (value is num && value == value.roundToDouble()) {
+      return value.toStringAsFixed(0);
+    }
+    return value.toString();
+  }
 }
 
 String _formattedToday() {

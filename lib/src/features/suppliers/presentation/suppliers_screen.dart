@@ -1,52 +1,32 @@
 import 'package:flutter/material.dart';
 
+import '../data/suppliers_api.dart';
+import '../../shared/presentation/api_clinic_table.dart';
 import '../../shared/presentation/clinic_ui.dart';
 
 class SuppliersPage extends StatelessWidget {
   const SuppliersPage({super.key});
   @override
-  Widget build(BuildContext context) => ClinicDataPage(
+  Widget build(BuildContext context) => ClinicPageFrame(
     title: 'Suppliers',
-    action: 'Add supplier',
-    columns: const [
-      'ID',
-      'Name',
-      'Company',
-      'Contact',
-      'Address',
-      'Status',
-      'Actions',
-    ],
-    rows: const [
-      [
-        'SUP-001',
-        'Imran Qureshi',
-        'PetCare Distributors',
-        '+92 300 1112233',
-        'Gulberg, Lahore',
-        'Active',
-        'View · Edit',
+    action: ClinicPrimaryButton(
+      label: 'Add supplier',
+      icon: Icons.add,
+      onPressed: () =>
+          showClinicNotice(context, 'Supplier form is ready to complete.'),
+    ),
+    child: ApiClinicTable(
+      title: 'Suppliers',
+      columns: const ['ID', 'Name', 'Company', 'Contact', 'Address', 'Status'],
+      loadRows: SuppliersApi().list,
+      mapRow: (supplier) => [
+        apiCell(supplier, 'supplier_id'),
+        apiCell(supplier, 'sup_name'),
+        apiCell(supplier, 'sup_company'),
+        apiCell(supplier, 'sup_contact'),
+        apiCell(supplier, 'sup_address'),
+        apiCell(supplier, 'sup_status'),
       ],
-      [
-        'SUP-002',
-        'Sana Mahmood',
-        'MediVet Supplies',
-        '+92 321 2223344',
-        'Clifton, Karachi',
-        'Active',
-        'View · Edit',
-      ],
-      [
-        'SUP-003',
-        'Usman Tariq',
-        'Animal Health Co.',
-        '+92 333 3334455',
-        'Blue Area, Islamabad',
-        'Active',
-        'View · Edit',
-      ],
-    ],
-    onAction: () =>
-        showClinicNotice(context, 'Supplier form is ready to complete.'),
+    ),
   );
 }

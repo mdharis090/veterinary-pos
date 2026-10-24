@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/payments_api.dart';
+import '../../shared/presentation/api_clinic_table.dart';
 import '../../shared/presentation/clinic_ui.dart';
 
 class PaymentsScreen extends StatelessWidget {
@@ -10,28 +12,15 @@ class PaymentsScreen extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const ClinicStatsGrid(
-          items: [
-            ('Cash · 24 transactions', 'Rs 18,450', clinicTeal),
-            ('Card · 12 transactions', 'Rs 12,600', Color(0xFF3B82F6)),
-            ('Online · 8 transactions', 'Rs 8,200', Color(0xFFF97360)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        const ClinicTable(
+        ApiClinicTable(
           title: 'Recent payments',
-          columns: ['ID', 'Invoice', 'Amount', 'Method', 'Date', 'Actions'],
-          rows: [
-            ['PAY-108', 'INV-001', 'Rs 500.00', 'Cash', '05 Oct 2026', 'View'],
-            ['PAY-107', 'INV-002', 'Rs 750.00', 'Card', '04 Oct 2026', 'View'],
-            [
-              'PAY-106',
-              'INV-003',
-              'Rs 180.00',
-              'Online',
-              '03 Oct 2026',
-              'View',
-            ],
+          columns: const ['ID', 'Invoice', 'Amount', 'Method'],
+          loadRows: PaymentsApi().list,
+          mapRow: (payment) => [
+            apiCell(payment, 'payment_id'),
+            apiCell(payment, 'sal_invoice_no'),
+            'Rs ${apiCell(payment, 'pay_amount')}',
+            apiCell(payment, 'pay_method'),
           ],
         ),
       ],

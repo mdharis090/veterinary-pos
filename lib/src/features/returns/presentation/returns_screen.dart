@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/returns_api.dart';
+import '../../shared/presentation/api_clinic_table.dart';
 import '../../shared/presentation/clinic_ui.dart';
 
 class ReturnsScreen extends StatelessWidget {
@@ -9,26 +11,17 @@ class ReturnsScreen extends StatelessWidget {
     title: 'Returns',
     child: LayoutBuilder(
       builder: (context, constraints) {
-        final list = const ClinicTable(
+        final list = ApiClinicTable(
           title: 'Recent returns',
-          columns: ['ID', 'Invoice', 'Medicine', 'Qty', 'Refund', 'Reason'],
-          rows: [
-            [
-              'RET-009',
-              'INV-072',
-              'Vitamin supplement',
-              '1',
-              'Rs 180.00',
-              'Damaged pack',
-            ],
-            [
-              'RET-008',
-              'INV-068',
-              'Deworming tablet',
-              '2',
-              'Rs 150.00',
-              'Wrong item',
-            ],
+          columns: const ['ID', 'Invoice', 'Medicine', 'Qty', 'Refund', 'Reason'],
+          loadRows: ReturnsApi().list,
+          mapRow: (saleReturn) => [
+            apiCell(saleReturn, 'return_id'),
+            apiCell(saleReturn, 'sal_invoice_no'),
+            apiCell(saleReturn, 'med_name'),
+            apiCell(saleReturn, 'ret_qty'),
+            'Rs ${apiCell(saleReturn, 'ret_refund_amount')}',
+            apiCell(saleReturn, 'ret_reason'),
           ],
         );
         final form = ClinicPanel(

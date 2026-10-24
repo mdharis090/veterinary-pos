@@ -1,64 +1,64 @@
 import 'package:flutter/material.dart';
 
+import '../data/animals_api.dart';
+import 'add_animal_dialog.dart';
+import '../../shared/presentation/api_clinic_table.dart';
 import '../../shared/presentation/clinic_ui.dart';
 
-class PatientsListPage extends StatelessWidget {
+class PatientsListPage extends StatefulWidget {
   const PatientsListPage({this.onNavigate, super.key});
   final ValueChanged<String>? onNavigate;
+
   @override
-  Widget build(BuildContext context) => ClinicDataPage(
+  State<PatientsListPage> createState() => _PatientsListPageState();
+}
+
+class _PatientsListPageState extends State<PatientsListPage> {
+  int _refreshKey = 0;
+
+  Future<void> _addAnimal() async {
+    final created = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AddAnimalDialog(),
+    );
+    if (created == true && mounted) {
+      setState(() => _refreshKey++);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => ClinicPageFrame(
     title: 'Patients',
-    action: 'Add animal',
-    columns: const [
-      'ID',
-      'Name',
-      'Species / Breed',
-      'Owner',
-      'Weight',
-      'Status',
-      'Actions',
-    ],
-    rows: const [
-      [
-        'PAT-001',
-        'Nyxie',
-        'Dog · German Shepherd',
-        'Sara Krugs',
-        '78 lbs',
-        'Active',
-        'View',
+    action: ClinicPrimaryButton(
+      label: 'Add animal',
+      icon: Icons.add,
+      onPressed: _addAnimal,
+    ),
+    child: ApiClinicTable(
+      key: ValueKey(_refreshKey),
+      title: 'Patients',
+      columns: const [
+        'ID',
+        'Name',
+        'Species / Breed',
+        'Owner',
+        'Weight',
+        'Status',
       ],
-      [
-        'PAT-002',
-        'Tommy',
-        'Dog · Labrador',
-        'Ali Raza',
-        '62 lbs',
-        'Active',
-        'View',
+      loadRows: AnimalsApi().list,
+      mapRow: (animal) => [
+        apiCell(animal, 'animal_id'),
+        apiCell(animal, 'an_name'),
+        [
+          apiCell(animal, 'an_species'),
+          apiCell(animal, 'an_breed'),
+        ].where((value) => value != '—').join(' · '),
+        apiCell(animal, 'owner_name'),
+        apiCell(animal, 'an_weight'),
+        apiCell(animal, 'an_status'),
       ],
-      [
-        'PAT-003',
-        'Kitty',
-        'Cat · Persian',
-        'Hina Khan',
-        '9 lbs',
-        'Active',
-        'View',
-      ],
-      [
-        'PAT-004',
-        'Rocky',
-        'Dog · Beagle',
-        'Ahmed Malik',
-        '24 lbs',
-        'Follow-up',
-        'View',
-      ],
-    ],
-    footer: 'Showing 1-4 of 4',
-    onAction: () =>
-        showClinicNotice(context, 'Animal form is ready to complete.'),
-    onRowTap: (_) => onNavigate?.call('Patient profile'),
+      onRowTap: (_) => widget.onNavigate?.call('Patient profile'),
+    ),
   );
 }
