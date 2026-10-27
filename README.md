@@ -41,8 +41,14 @@ loading, server errors, and a retry action instead of silently substituting
 sample data.
 
 The supplied Node snippet mounts `/api/purchases` but does not include its
-`routes/purchases` implementation. The purchase list/create UI remains a
-placeholder until that route's request and response contract is provided.
+`routes/purchases` implementation. The Flutter purchase screens use
+`GET /api/purchases` with a `{ "data": [...] }` response and
+`POST /api/purchases` with a `{ "data": {...} }` response. The create request
+contains the purchase header columns and an `items` array containing the
+`Purchase_Items` columns. The backend must create the purchase, its line items,
+associated medicine batches, and stock updates in one database transaction;
+the Flutter client does not update stock itself. Implement or verify this
+route on the Node.js server before using purchase creation with live data.
 
 The default API address is `http://172.17.2.49:5000/api`, matching the
 development machine's LAN address and the Node server's default port. Override

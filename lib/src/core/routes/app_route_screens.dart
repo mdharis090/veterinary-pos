@@ -26,7 +26,11 @@ abstract final class AppRouteScreens {
   }) {
     final routeName = AppRoutesNamed.dashboardSections[section];
     if (routeName == null) {
-      throw ArgumentError.value(section, 'section', 'Unknown dashboard section');
+      throw ArgumentError.value(
+        section,
+        'section',
+        'Unknown dashboard section',
+      );
     }
     return forRoute(routeName, onNavigate: onNavigate);
   }
@@ -46,7 +50,7 @@ abstract final class AppRouteScreens {
     AppRoutesNamed.inventory => const InventoryScreen(),
     AppRoutesNamed.batches => const BatchesPage(),
     AppRoutesNamed.suppliers => const SuppliersPage(),
-    AppRoutesNamed.purchases => PurchasesPage(onNavigate: onNavigate),
+    AppRoutesNamed.purchases => const PurchasesPage(),
     AppRoutesNamed.newPurchase => const NewPurchaseScreen(),
     AppRoutesNamed.posBilling => PosBillingScreen(),
     AppRoutesNamed.sales => const SalesPage(),
