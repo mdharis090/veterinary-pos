@@ -116,19 +116,24 @@ class _InventoryScreenState extends State<InventoryScreen> {
   ];
 
   List<String> _mapExpiredRow(JsonMap batch) => [
-    _cellFrom(batch, const ['bat_batch_no', 'batch_no', 'batch_id']),
-    _cellFrom(batch, const ['med_name', 'medicine_name']),
+    _cellFrom(batch, const ['bat_batch_no', 'batch_no']),
+    _cellFrom(batch, const ['med_name', 'medicine_name', 'medicine_id']),
     _cellFrom(batch, const ['bat_expiry_date', 'expiry_date']),
-    _cellFrom(batch, const ['bat_quantity', 'quantity', 'stock']),
+    _cellFrom(batch, const ['bat_quantity', 'quantity']),
     _cellFrom(batch, const ['status', 'stock_status'], fallback: 'Expired'),
   ];
 
   List<String> _mapLogRow(JsonMap log) => [
-    _cellFrom(log, const ['created_at', 'log_date', 'date']),
-    _cellFrom(log, const ['med_name', 'medicine_name']),
-    _cellFrom(log, const ['action', 'transaction_type', 'log_type', 'type']),
-    _cellFrom(log, const ['quantity', 'change_quantity', 'stock_change']),
-    _cellFrom(log, const ['details', 'notes', 'description']),
+    _cellFrom(log, const ['inv_date', 'created_at', 'log_date', 'date']),
+    _cellFrom(log, const ['med_name', 'medicine_name', 'medicine_id']),
+    _cellFrom(log, const [
+      'inv_change_type',
+      'action',
+      'transaction_type',
+      'log_type',
+    ]),
+    _cellFrom(log, const ['inv_qty', 'quantity', 'change_quantity']),
+    _logDetails(log),
   ];
 
   String _stockStatus(JsonMap medicine) {
@@ -154,5 +159,20 @@ class _InventoryScreenState extends State<InventoryScreen> {
       }
     }
     return fallback;
+  }
+
+  String _logDetails(JsonMap log) {
+    final notes = _cellFrom(log, const ['inv_notes', 'details', 'description']);
+    final referenceId = _cellFrom(log, const [
+      'inv_reference_id',
+      'reference_id',
+    ]);
+    if (notes == '—') {
+      return referenceId == '—' ? '—' : 'Reference #$referenceId';
+    }
+    if (referenceId == '—') {
+      return notes;
+    }
+    return '$notes · Reference #$referenceId';
   }
 }

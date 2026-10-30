@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/routes/app_routes_named.dart';
 import '../../medicines/data/medicines_api.dart';
 import '../../shared/presentation/clinic_ui.dart';
 import '../../suppliers/data/suppliers_api.dart';
@@ -26,7 +27,10 @@ class _PurchaseItemDraft {
 }
 
 class NewPurchaseScreen extends StatefulWidget {
-  const NewPurchaseScreen({super.key});
+  const NewPurchaseScreen({this.onBack, this.onSaved, super.key});
+
+  final VoidCallback? onBack;
+  final VoidCallback? onSaved;
 
   @override
   State<NewPurchaseScreen> createState() => _NewPurchaseScreenState();
@@ -36,13 +40,10 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _invoiceNumber = TextEditingController();
   final _discount = TextEditingController(text: '0');
-  final _notes = TextEditingController();
   late Future<List<JsonMap>> _suppliers;
   late Future<List<JsonMap>> _medicines;
   final List<_PurchaseItemDraft> _items = [];
   int? _supplierId;
-  DateTime _purchaseDate = DateTime.now();
-  String _paymentStatus = 'Paid';
   bool _saving = false;
   String? _error;
 
@@ -58,7 +59,6 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
   void dispose() {
     _invoiceNumber.dispose();
     _discount.dispose();
-    _notes.dispose();
     for (final item in _items) {
       item.dispose();
     }
@@ -89,35 +89,6 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
       '${date.year.toString().padLeft(4, '0')}-'
       '${date.month.toString().padLeft(2, '0')}-'
       '${date.day.toString().padLeft(2, '0')}';
-
-  String _dateTimeValue(DateTime date) =>
-      '${_dateValue(date)} '
-      '${date.hour.toString().padLeft(2, '0')}:'
-      '${date.minute.toString().padLeft(2, '0')}:00';
-
-  Future<void> _pickPurchaseDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _purchaseDate,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    if (date == null || !mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_purchaseDate),
-    );
-    if (time == null || !mounted) return;
-    setState(
-      () => _purchaseDate = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      ),
-    );
-  }
 
   Future<void> _pickExpiryDate(_PurchaseItemDraft item) async {
     final date = await showDatePicker(
@@ -158,7 +129,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
 
   String? _validatePrice(String? value) {
     final parsed = num.tryParse(value?.trim() ?? '');
-    if (parsed == null || parsed < 0) {
+    if (parsed == null || !parsed.isFinite || parsed < 0) {
       return 'Enter a valid price of 0 or more.';
     }
     return null;
@@ -166,7 +137,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
 
   String? _validateDiscount(String? value) {
     final parsed = num.tryParse(value?.trim() ?? '');
-    if (parsed == null || parsed < 0) {
+    if (parsed == null || !parsed.isFinite || parsed < 0) {
       return 'Enter a valid discount of 0 or more.';
     }
     if (parsed > _subtotal) return 'Discount cannot exceed the subtotal.';
@@ -208,13 +179,9 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
     try {
       await PurchasesApi().create({
         'supplier_id': supplierId,
-        'pur_invoice_no': _optionalText(_invoiceNumber.text),
-        'pur_purchase_date': _dateTimeValue(_purchaseDate),
-        'pur_subtotal': _subtotal,
+        if (_optionalText(_invoiceNumber.text) case final String invoiceNumber)
+          'pur_invoice_no': invoiceNumber,
         'pur_discount': _discountAmount,
-        'pur_total_amount': _total,
-        'pur_payment_status': _paymentStatus,
-        'pur_notes': _optionalText(_notes.text),
         'items': [
           for (final item in _items)
             {
@@ -223,11 +190,17 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
               'pi_qty': int.parse(item.quantity.text.trim()),
               'pi_price': num.parse(item.price.text.trim()),
               'pi_expiry_date': _dateValue(item.expiryDate!),
-              'pi_line_total': item.lineTotal,
             },
         ],
       });
-      if (mounted) Navigator.of(context).pop(true);
+      if (mounted) {
+        final onSaved = widget.onSaved;
+        if (onSaved != null) {
+          onSaved();
+        } else {
+          Navigator.of(context).pop(true);
+        }
+      }
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
     } on FormatException {
@@ -236,6 +209,20 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  void _backToPurchases() {
+    final onBack = widget.onBack;
+    if (onBack != null) {
+      onBack();
+      return;
+    }
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop(false);
+    } else {
+      navigator.pushReplacementNamed(AppRoutesNamed.purchases);
     }
   }
 
@@ -493,35 +480,6 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
           textCapitalization: TextCapitalization.characters,
           decoration: _decoration('Supplier invoice number'),
         ),
-        const SizedBox(height: 14),
-        OutlinedButton.icon(
-          onPressed: _saving ? null : _pickPurchaseDate,
-          icon: const Icon(Icons.calendar_today_outlined),
-          label: Text('Purchase date: ${_dateTimeValue(_purchaseDate)}'),
-        ),
-        const SizedBox(height: 14),
-        DropdownButtonFormField<String>(
-          initialValue: _paymentStatus,
-          decoration: _decoration('Payment status'),
-          items: const [
-            DropdownMenuItem(value: 'Paid', child: Text('Paid')),
-            DropdownMenuItem(value: 'Pending', child: Text('Pending')),
-            DropdownMenuItem(value: 'Partial', child: Text('Partial')),
-          ],
-          onChanged: _saving
-              ? null
-              : (value) {
-                  if (value != null) setState(() => _paymentStatus = value);
-                },
-        ),
-        const SizedBox(height: 14),
-        TextFormField(
-          controller: _notes,
-          enabled: !_saving,
-          minLines: 2,
-          maxLines: 4,
-          decoration: _decoration('Notes'),
-        ),
       ],
     ),
   );
@@ -583,6 +541,11 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
   Widget build(BuildContext context) => ClinicPageFrame(
     title: 'New purchase',
     subtitle: 'Record a supplier invoice and the medicines received.',
+    action: ClinicOutlineButton(
+      label: 'Back to purchases',
+      icon: Icons.arrow_back,
+      onPressed: _saving ? null : _backToPurchases,
+    ),
     child: Form(
       key: _formKey,
       child: LayoutBuilder(

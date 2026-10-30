@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:veterinary_pos/src/core/network/api_client.dart';
+import 'package:veterinary_pos/src/core/network/api_exception.dart';
 import 'package:veterinary_pos/src/core/network/token_storage.dart';
 import 'package:veterinary_pos/src/features/purchases/data/purchases_api.dart';
 
@@ -44,12 +45,7 @@ void main() {
     final purchase = <String, dynamic>{
       'supplier_id': 3,
       'pur_invoice_no': 'INV-12',
-      'pur_purchase_date': '2026-10-26 12:30:00',
-      'pur_subtotal': 40,
       'pur_discount': 2,
-      'pur_total_amount': 38,
-      'pur_payment_status': 'Paid',
-      'pur_notes': null,
       'items': [
         {
           'medicine_id': 8,
@@ -57,7 +53,6 @@ void main() {
           'pi_qty': 2,
           'pi_price': 20,
           'pi_expiry_date': '2027-10-26',
-          'pi_line_total': 40,
         },
       ],
     };
@@ -72,7 +67,9 @@ void main() {
           return http.Response(
             jsonEncode({
               'success': true,
-              'data': {'purchase_id': 12},
+              'message': 'Purchase created',
+              'purchase_id': 12,
+              'total': 38,
             }),
             201,
           );
@@ -83,5 +80,32 @@ void main() {
     final created = await api.create(purchase);
 
     expect(created['purchase_id'], 12);
+    expect(created['total'], 38);
+  });
+
+  test('reports an unsuccessful purchase response', () async {
+    final api = PurchasesApi(
+      ApiClient(
+        baseUrl: 'https://api.example.test/api',
+        tokenStorage: _MemoryTokenStorage(),
+        httpClient: MockClient(
+          (_) async => http.Response(
+            jsonEncode({'success': false, 'message': 'Supplier not found'}),
+            200,
+          ),
+        ),
+      ),
+    );
+
+    await expectLater(
+      api.create({'supplier_id': 99, 'items': []}),
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.message,
+          'message',
+          'Supplier not found',
+        ),
+      ),
+    );
   });
 }
