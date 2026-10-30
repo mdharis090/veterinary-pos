@@ -531,9 +531,15 @@ class ClinicStatsGrid extends StatelessWidget {
 }
 
 class ClinicTabs extends StatelessWidget {
-  const ClinicTabs({required this.labels, this.selectedIndex = 0, super.key});
+  const ClinicTabs({
+    required this.labels,
+    this.selectedIndex = 0,
+    this.onSelected,
+    super.key,
+  });
   final List<String> labels;
   final int selectedIndex;
+  final ValueChanged<int>? onSelected;
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
     scrollDirection: Axis.horizontal,
@@ -543,7 +549,7 @@ class ClinicTabs extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => onSelected?.call(index),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(0, 44),
                 backgroundColor: index == selectedIndex
