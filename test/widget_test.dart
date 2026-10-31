@@ -1,7 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:veterinary_pos/main.dart';
+import 'package:veterinary_pos/src/core/network/api_client.dart';
 import 'package:veterinary_pos/src/core/routes/app_routes_named.dart';
+import 'package:veterinary_pos/src/features/billing/presentation/pos_billing_screen.dart';
+import 'package:veterinary_pos/src/features/medicines/data/medicines_api.dart';
+import 'package:veterinary_pos/src/features/owners/data/owners_api.dart';
+import 'package:veterinary_pos/src/features/patients/data/animals_api.dart';
+import 'package:veterinary_pos/src/features/sales/data/sales_api.dart';
+
+class _FakeOwnersApi extends OwnersApi {
+  @override
+  Future<List<JsonMap>> list() async => [
+    {'owner_id': 1, 'ow_name': 'Sara Krugs'},
+  ];
+}
+
+class _FakeAnimalsApi extends AnimalsApi {
+  @override
+  Future<List<JsonMap>> listByOwner(int ownerId) async => [
+    {'animal_id': 2, 'an_name': 'Nyxie'},
+  ];
+}
+
+class _FakeMedicinesApi extends MedicinesApi {
+  @override
+  Future<List<JsonMap>> list() async => [
+    {
+      'medicine_id': 3,
+      'med_name': 'Amoxicillin 500mg',
+      'med_stock': 10,
+      'med_sale_price': 10,
+    },
+  ];
+}
+
+class _FakeSalesApi extends SalesApi {
+  JsonMap? createdSale;
+
+  @override
+  Future<JsonMap> create(JsonMap sale) async {
+    createdSale = sale;
+    return {'sale_id': 12};
+  }
+}
 
 void main() {
   testWidgets('dashboard renders summary and panels', (tester) async {
@@ -63,15 +105,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(
-      const VeterinaryPosApp(initialRoute: AppRoutesNamed.dashboard),
-    );
-    await tester.tap(find.byTooltip('Open navigation'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('POS Billing'));
+    await tester.pumpWidget(_buildPosBilling());
     await tester.pumpAndSettle();
 
-    expect(find.text('Invoice INV-001'), findsOneWidget);
     expect(find.text('Customer'), findsOneWidget);
     expect(find.text('Cart'), findsOneWidget);
     expect(find.text('Total'), findsOneWidget);
@@ -86,14 +122,44 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(
-      const VeterinaryPosApp(initialRoute: AppRoutesNamed.dashboard),
-    );
-    await tester.tap(find.text('POS Billing'));
+    await tester.pumpWidget(_buildPosBilling());
     await tester.pumpAndSettle();
 
-    expect(find.text('Invoice INV-001'), findsOneWidget);
     expect(find.text('Complete sale'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('POS adds medicines and submits a sale', (tester) async {
+    final salesApi = _FakeSalesApi();
+    await tester.pumpWidget(_buildPosBilling(salesApi: salesApi));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Add Amoxicillin 500mg'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Complete sale'));
+    await tester.tap(find.text('Complete sale'));
+    await tester.pumpAndSettle();
+
+    expect(salesApi.createdSale, {
+      'owner_id': 1,
+      'animal_id': 2,
+      'sal_payment_method': 'Cash',
+      'sal_discount': 0,
+      'items': [
+        {'medicine_id': 3, 'si_qty': 1, 'si_price': 10},
+      ],
+    });
+    expect(find.text('Sale #12 completed.'), findsOneWidget);
+  });
 }
+
+Widget _buildPosBilling({SalesApi? salesApi}) => MaterialApp(
+  home: Scaffold(
+    body: PosBillingScreen(
+      ownersApi: _FakeOwnersApi(),
+      animalsApi: _FakeAnimalsApi(),
+      medicinesApi: _FakeMedicinesApi(),
+      salesApi: salesApi ?? _FakeSalesApi(),
+    ),
+  ),
+);

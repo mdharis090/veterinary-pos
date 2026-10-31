@@ -1,3 +1,4 @@
+import '../../../core/network/api_exception.dart';
 import '../../../core/network/api_client.dart';
 
 class SalesApi {
@@ -6,6 +7,20 @@ class SalesApi {
 
   Future<List<JsonMap>> list() => _client.getList('sales');
   Future<JsonMap> getById(int id) => _client.getData('sales/$id');
-  Future<JsonMap> create(JsonMap sale) =>
-      _client.postData('sales', body: sale);
+  Future<JsonMap> create(JsonMap sale) async {
+    final response = await _client.post('sales', body: sale);
+    if (response['success'] != true) {
+      final message = response['message'] ?? response['error'];
+      throw ApiException(
+        message is String && message.isNotEmpty
+            ? message
+            : 'The sale could not be completed.',
+      );
+    }
+    final data = response['data'];
+    if (data is! Map<String, dynamic>) {
+      throw const ApiException('The server returned an incomplete sale.');
+    }
+    return data;
+  }
 }

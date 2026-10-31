@@ -192,14 +192,21 @@ class ClinicField extends StatelessWidget {
 }
 
 class ClinicSearchField extends StatelessWidget {
-  const ClinicSearchField({required this.hint, this.controller, super.key});
+  const ClinicSearchField({
+    required this.hint,
+    this.controller,
+    this.onChanged,
+    super.key,
+  });
   final String hint;
   final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
   @override
   Widget build(BuildContext context) => SizedBox(
     height: 44,
     child: TextField(
       controller: controller,
+      onChanged: onChanged,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.search, color: clinicMuted),
         hintText: hint,
