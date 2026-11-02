@@ -53,7 +53,7 @@ abstract final class AppRouteScreens {
     AppRoutesNamed.purchases => const PurchasesPage(),
     AppRoutesNamed.newPurchase => const NewPurchaseScreen(),
     AppRoutesNamed.posBilling => PosBillingScreen(),
-    AppRoutesNamed.sales => const SalesPage(),
+    AppRoutesNamed.sales => SalesPage(onNavigate: onNavigate),
     AppRoutesNamed.returns => const ReturnsScreen(),
     AppRoutesNamed.payments => const PaymentsScreen(),
     AppRoutesNamed.reports => const ReportsScreen(),
