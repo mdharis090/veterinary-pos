@@ -38,9 +38,17 @@ class _AuthGateState extends State<AuthGate> {
     }
   }
 
-  void _retry() => setState(() => _authentication = _checkAuthentication());
+  void _retry() {
+    setState(() {
+      _authentication = _checkAuthentication();
+    });
+  }
 
-  void _onSignIn() => setState(() => _authentication = Future.value(true));
+  void _onSignIn() {
+    setState(() {
+      _authentication = Future.value(true);
+    });
+  }
 
   @override
   Widget build(BuildContext context) => FutureBuilder<bool>(

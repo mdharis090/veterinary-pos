@@ -36,7 +36,11 @@ class _SalesPageState extends State<SalesPage> {
     super.dispose();
   }
 
-  void _reload() => setState(() => _sales = _salesApi.list());
+  void _reload() {
+    setState(() {
+      _sales = _salesApi.list();
+    });
+  }
 
   void _clearFilters() {
     _searchController.clear();

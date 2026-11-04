@@ -4,9 +4,12 @@ import 'package:veterinary_pos/main.dart';
 import 'package:veterinary_pos/src/core/network/api_client.dart';
 import 'package:veterinary_pos/src/core/routes/app_routes_named.dart';
 import 'package:veterinary_pos/src/features/billing/presentation/pos_billing_screen.dart';
+import 'package:veterinary_pos/src/features/auth/presentation/login_screen.dart';
 import 'package:veterinary_pos/src/features/medicines/data/medicines_api.dart';
 import 'package:veterinary_pos/src/features/owners/data/owners_api.dart';
 import 'package:veterinary_pos/src/features/patients/data/animals_api.dart';
+import 'package:veterinary_pos/src/features/reports/data/reports_api.dart';
+import 'package:veterinary_pos/src/features/reports/presentation/reports_screen.dart';
 import 'package:veterinary_pos/src/features/sales/data/sales_api.dart';
 
 class _FakeOwnersApi extends OwnersApi {
@@ -45,7 +48,98 @@ class _FakeSalesApi extends SalesApi {
   }
 }
 
+class _FakeReportsApi extends ReportsApi {
+  @override
+  Future<JsonMap> dashboard() async => {
+    'total_owners': 3,
+    'total_animals': 4,
+    'total_medicines': 5,
+    'total_sales': 6,
+    'total_revenue': 900,
+    'low_stock_count': 1,
+    'expired_count': 2,
+  };
+
+  @override
+  Future<List<JsonMap>> dailySales() async => [
+    {
+      'sale_date': '2026-11-04',
+      'total_invoices': 2,
+      'subtotal': 120,
+      'total_discount': 10,
+      'total_sales': 110,
+    },
+  ];
+
+  @override
+  Future<List<JsonMap>> monthlySales() async => [
+    {'year': 2026, 'month': 11, 'total_invoices': 2, 'total_sales': 110},
+  ];
+
+  @override
+  Future<List<JsonMap>> topMedicines() async => [
+    {
+      'med_name': 'Amoxicillin',
+      'med_category': 'Antibiotic',
+      'total_qty_sold': 3,
+      'total_revenue': 90,
+    },
+  ];
+
+  @override
+  Future<List<JsonMap>> ownerSales() async => [
+    {
+      'ow_name': 'Sara',
+      'ow_phone': '03001234567',
+      'total_invoices': 2,
+      'total_spent': 110,
+    },
+  ];
+
+  @override
+  Future<List<JsonMap>> purchases() async => [
+    {
+      'sup_name': 'Vet Supplier',
+      'total_purchases': 1,
+      'total_items': 10,
+      'total_amount': 500,
+    },
+  ];
+
+  @override
+  Future<List<JsonMap>> payments() async => [
+    {'pay_method': 'Cash', 'total_transactions': 2, 'total_amount': 110},
+  ];
+}
+
 void main() {
+  testWidgets('login screen renders without ListTile material assertions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(MaterialApp(home: LoginScreen(onSignIn: () {})));
+
+    expect(find.text('Remember me'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('reports screen displays API-backed report sections', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: ReportsScreen(reportsApi: _FakeReportsApi())),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Clinic summary'), findsOneWidget);
+    expect(find.text('Daily sales trend'), findsOneWidget);
+    expect(find.text('Monthly sales'), findsOneWidget);
+    expect(find.text('Top selling medicines'), findsOneWidget);
+    expect(find.text('Sales by owner'), findsOneWidget);
+    expect(find.text('Purchases by supplier'), findsOneWidget);
+    expect(find.text('Payments'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('dashboard renders summary and panels', (tester) async {
     await tester.pumpWidget(
       const VeterinaryPosApp(initialRoute: AppRoutesNamed.dashboard),

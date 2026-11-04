@@ -47,18 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
         username: _username.text.trim(),
         password: _password.text,
       );
-      await TokenStorage.instance.saveToken(
-        session.token,
-        persist: _remember,
-      );
+      await TokenStorage.instance.saveToken(session.token, persist: _remember);
       if (mounted) widget.onSignIn();
     } on ApiException catch (error) {
       if (mounted) setState(() => _loginError = error.message);
     } on PlatformException {
       if (mounted) {
-        setState(
-          () => _loginError = 'Secure sign-in storage is unavailable.',
-        );
+        setState(() => _loginError = 'Secure sign-in storage is unavailable.');
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -127,16 +122,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        title: const Text(
-                          'Remember me',
-                          style: TextStyle(fontSize: 14),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          title: const Text(
+                            'Remember me',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          value: _remember,
+                          onChanged: (value) =>
+                              setState(() => _remember = value ?? false),
                         ),
-                        value: _remember,
-                        onChanged: (value) =>
-                            setState(() => _remember = value ?? false),
                       ),
                     ),
                     TextButton(

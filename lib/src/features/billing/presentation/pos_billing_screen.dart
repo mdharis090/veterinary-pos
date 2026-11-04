@@ -29,6 +29,7 @@ class PosBillingScreen extends StatefulWidget {
 class _PosBillingScreenState extends State<PosBillingScreen> {
   final _searchController = TextEditingController();
   final _discountController = TextEditingController(text: '0');
+  final _paymentReferenceController = TextEditingController();
   final Map<int, _CartItem> _cart = {};
 
   List<JsonMap> _owners = [];
@@ -70,6 +71,7 @@ class _PosBillingScreenState extends State<PosBillingScreen> {
   void dispose() {
     _searchController.dispose();
     _discountController.dispose();
+    _paymentReferenceController.dispose();
     super.dispose();
   }
 
@@ -193,6 +195,14 @@ class _PosBillingScreenState extends State<PosBillingScreen> {
       );
       return;
     }
+    final paymentReference = _paymentReferenceController.text.trim();
+    if (_paymentMethod != 'Cash' && paymentReference.isEmpty) {
+      showClinicNotice(
+        context,
+        'Enter the payment reference for $_paymentMethod.',
+      );
+      return;
+    }
 
     setState(() {
       _saving = true;
@@ -203,6 +213,7 @@ class _PosBillingScreenState extends State<PosBillingScreen> {
         'owner_id': ownerId,
         'animal_id': animalId,
         'sal_payment_method': _paymentMethod,
+        'pay_reference': _paymentMethod == 'Cash' ? null : paymentReference,
         'sal_discount': discount,
         'items': [
           for (final item in _cart.values)
@@ -218,6 +229,7 @@ class _PosBillingScreenState extends State<PosBillingScreen> {
       setState(() {
         _cart.clear();
         _discountController.text = '0';
+        _paymentReferenceController.clear();
         _saving = false;
       });
       showClinicNotice(
@@ -513,6 +525,20 @@ class _PosBillingScreenState extends State<PosBillingScreen> {
                     if (selected) setState(() => _paymentMethod = method);
                   },
           ),
+        if (_paymentMethod != 'Cash') ...[
+          const SizedBox(height: 8),
+          TextField(
+            controller: _paymentReferenceController,
+            enabled: !_saving,
+            textCapitalization: TextCapitalization.characters,
+            decoration: InputDecoration(
+              labelText: '$_paymentMethod transaction reference',
+              hintText: 'Enter the reference from the payment receipt',
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.receipt_long_outlined),
+            ),
+          ),
+        ],
       ],
     ),
   );

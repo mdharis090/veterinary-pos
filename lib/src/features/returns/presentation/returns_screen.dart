@@ -64,7 +64,11 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
     return (results[0], results[1]);
   }
 
-  void _retryLookups() => setState(() => _lookups = _loadLookups());
+  void _retryLookups() {
+    setState(() {
+      _lookups = _loadLookups();
+    });
+  }
 
   Future<void> _processReturn() async {
     if (!_formKey.currentState!.validate()) return;

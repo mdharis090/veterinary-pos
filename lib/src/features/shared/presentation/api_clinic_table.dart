@@ -36,7 +36,11 @@ class _ApiClinicTableState extends State<ApiClinicTable> {
     _rows = widget.loadRows();
   }
 
-  void _reload() => setState(() => _rows = widget.loadRows());
+  void _reload() {
+    setState(() {
+      _rows = widget.loadRows();
+    });
+  }
 
   @override
   Widget build(BuildContext context) => FutureBuilder<List<JsonMap>>(

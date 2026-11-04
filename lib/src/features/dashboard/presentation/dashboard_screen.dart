@@ -580,8 +580,9 @@ class _DashboardSummaryGridState extends State<_DashboardSummaryGrid> {
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: () =>
-                        setState(() => _summary = ReportsApi().dashboard()),
+                    onPressed: () => setState(() {
+                      _summary = ReportsApi().dashboard();
+                    }),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
                   ),
